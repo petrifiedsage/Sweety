@@ -1,6 +1,8 @@
 const AppError = require('../utils/AppError');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HAS_CAPITAL_REGEX = /[A-Z]/;
+const HAS_NUMBER_REGEX = /[0-9]/;
 
 function validateRegisterInput(body = {}) {
   const { name, email, password } = body;
@@ -23,6 +25,13 @@ function validateRegisterInput(body = {}) {
 
   if (typeof password !== 'string' || password.length === 0) {
     throw new AppError('Password is required.', 400);
+  }
+
+  if (!HAS_CAPITAL_REGEX.test(password) || !HAS_NUMBER_REGEX.test(password)) {
+    throw new AppError(
+      'Password must contain at least one capital letter and one number.',
+      400
+    );
   }
 
   return {

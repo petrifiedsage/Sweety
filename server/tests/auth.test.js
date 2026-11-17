@@ -100,4 +100,26 @@ describe('Authentication API (/api/auth)', () => {
       .set('Authorization', 'Bearer invalid.jwt.token');
     expect(badTokenRes.statusCode).toBe(401);
   });
+
+  test('7. Registration rejects password without a capital letter and a number', async () => {
+    const noCapRes = await request(app).post('/api/auth/register').send({
+      name: 'Test User',
+      email: 'nocap@sweety.test',
+      password: 'password123',
+    });
+    expect(noCapRes.statusCode).toBe(400);
+    expect(noCapRes.body.error).toBe(
+      'Password must contain at least one capital letter and one number.'
+    );
+
+    const noNumRes = await request(app).post('/api/auth/register').send({
+      name: 'Test User',
+      email: 'nonum@sweety.test',
+      password: 'PasswordOnly',
+    });
+    expect(noNumRes.statusCode).toBe(400);
+    expect(noNumRes.body.error).toBe(
+      'Password must contain at least one capital letter and one number.'
+    );
+  });
 });

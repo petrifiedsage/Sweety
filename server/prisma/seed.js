@@ -10,7 +10,7 @@ function formatDateYMD(year, month1Based, day) {
 }
 
 async function main() {
-  console.log('Seeding Sweety database...');
+  console.log('Seeding Sweety database with daily glucose readings...');
 
   const demoEmail = 'demo@sweety.test';
   const demoPasswordHash = await bcrypt.hash('Demo@1234', 10);
@@ -42,10 +42,76 @@ async function main() {
 
   const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
   const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const daysInPrevMonth = new Date(Date.UTC(currentYear, currentMonth - 1, 0)).getUTCDate();
 
   const readingsToCreate = [];
 
-  // 1. Four readings on today's date (or current date)
+  // 1. Seed daily readings across the entire previous calendar month
+  for (let day = 1; day <= daysInPrevMonth; day++) {
+    const dateStr = formatDateYMD(prevMonthYear, prevMonth, day);
+    const wave = (day * 7) % 24;
+
+    readingsToCreate.push(
+      {
+        reading_date: dateStr,
+        time_slot: 'MORNING_FASTING',
+        glucose_value: 88 + (day % 18), // 88..105 mg/dL
+      },
+      {
+        reading_date: dateStr,
+        time_slot: 'AFTER_BREAKFAST',
+        glucose_value: 118 + wave, // 118..141 mg/dL
+      },
+      {
+        reading_date: dateStr,
+        time_slot: 'AFTER_LUNCH',
+        glucose_value: 130 + ((day * 5) % 38), // 130..167 mg/dL
+      }
+    );
+
+    // Add 4th slot (After dinner) on most days for realistic variety
+    if (day % 3 !== 0) {
+      readingsToCreate.push({
+        reading_date: dateStr,
+        time_slot: 'AFTER_DINNER',
+        glucose_value: 112 + ((day * 3) % 30), // 112..141 mg/dL
+      });
+    }
+  }
+
+  // 2. Seed daily readings for every day of the current month up to yesterday
+  for (let day = 1; day < currentDay; day++) {
+    const dateStr = formatDateYMD(currentYear, currentMonth, day);
+    const offset = (day * 5) % 22;
+
+    readingsToCreate.push(
+      {
+        reading_date: dateStr,
+        time_slot: 'MORNING_FASTING',
+        glucose_value: 90 + (day % 16), // 90..105 mg/dL
+      },
+      {
+        reading_date: dateStr,
+        time_slot: 'AFTER_BREAKFAST',
+        glucose_value: 116 + offset, // 116..137 mg/dL
+      },
+      {
+        reading_date: dateStr,
+        time_slot: 'AFTER_LUNCH',
+        glucose_value: 132 + ((day * 7) % 36), // 132..167 mg/dL
+      }
+    );
+
+    if (day % 2 === 0 || day === currentDay - 1) {
+      readingsToCreate.push({
+        reading_date: dateStr,
+        time_slot: 'AFTER_DINNER',
+        glucose_value: 114 + ((day * 4) % 26), // 114..139 mg/dL
+      });
+    }
+  }
+
+  // 3. Today's 4 readings (matching the spec sheet example: 95, 120, 160, 115 -> avg 122.5)
   const todayStr = formatDateYMD(currentYear, currentMonth, currentDay);
   readingsToCreate.push(
     { reading_date: todayStr, time_slot: 'MORNING_FASTING', glucose_value: 95 },
@@ -53,66 +119,6 @@ async function main() {
     { reading_date: todayStr, time_slot: 'AFTER_LUNCH', glucose_value: 160 },
     { reading_date: todayStr, time_slot: 'AFTER_DINNER', glucose_value: 115 }
   );
-
-  // 2. Additional readings earlier in the current month (for Month-to-Date reporting)
-  const earlierDaysInCurrentMonth = [1, 3, 5, 8, 12].filter((d) => d < currentDay);
-  if (earlierDaysInCurrentMonth.length === 0 && currentDay > 1) {
-    earlierDaysInCurrentMonth.push(currentDay - 1);
-  }
-
-  earlierDaysInCurrentMonth.forEach((dayNum, index) => {
-    const dateStr = formatDateYMD(currentYear, currentMonth, dayNum);
-    readingsToCreate.push(
-      {
-        reading_date: dateStr,
-        time_slot: 'MORNING_FASTING',
-        glucose_value: 92 + index * 4,
-      },
-      {
-        reading_date: dateStr,
-        time_slot: 'AFTER_LUNCH',
-        glucose_value: 138 + index * 6,
-      }
-    );
-    if (index % 2 === 0) {
-      readingsToCreate.push({
-        reading_date: dateStr,
-        time_slot: 'AFTER_DINNER',
-        glucose_value: 124 + index * 5,
-      });
-    }
-  });
-
-  // 3. Readings across multiple days in the previous calendar month (for Previous Monthly report)
-  const prevMonthSampleDays = [2, 6, 10, 15, 20, 25];
-  prevMonthSampleDays.forEach((dayNum, idx) => {
-    const dateStr = formatDateYMD(prevMonthYear, prevMonth, dayNum);
-    readingsToCreate.push(
-      {
-        reading_date: dateStr,
-        time_slot: 'MORNING_FASTING',
-        glucose_value: 90 + idx * 3,
-      },
-      {
-        reading_date: dateStr,
-        time_slot: 'AFTER_BREAKFAST',
-        glucose_value: 125 + idx * 4,
-      },
-      {
-        reading_date: dateStr,
-        time_slot: 'AFTER_LUNCH',
-        glucose_value: 145 + idx * 5,
-      }
-    );
-    if (idx === 3) {
-      // Full 4 readings on the 15th of the previous month
-      readingsToCreate.push({
-        reading_date: dateStr,
-        time_slot: 'AFTER_DINNER',
-        glucose_value: 118,
-      });
-    }
-  });
 
   for (const item of readingsToCreate) {
     await prisma.reading.upsert({
@@ -135,7 +141,7 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${readingsToCreate.length} blood glucose readings for ${demoEmail}.`);
+  console.log(`Seeded ${readingsToCreate.length} daily blood glucose readings for ${demoEmail}.`);
 }
 
 main()

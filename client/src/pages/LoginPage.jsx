@@ -10,6 +10,8 @@ import {
   Sun,
   Moon,
   ArrowRight,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +21,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,7 +71,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row items-center justify-center gap-6 w-full max-w-5xl">
         {/* Left Wellness Showcase Card */}
-        <div className="hidden lg:flex w-full max-w-[460px] h-[580px] rounded-[32px] bg-gradient-to-br from-stone-900 via-stone-900 to-teal-950 text-white p-9 flex-col justify-between shadow-card">
+        <div className="hidden lg:flex w-full max-w-[460px] h-[620px] rounded-[32px] bg-gradient-to-br from-stone-900 via-stone-900 to-teal-950 text-white p-9 flex-col justify-between shadow-card">
           <div>
             <div className="inline-flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-teal-500 flex items-center justify-center text-white shadow-sm">
@@ -90,7 +93,7 @@ export default function LoginPage() {
                   Daily Target Summary
                 </span>
                 <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="font-display text-3xl font-extrabold text-white">118.5</span>
+                  <span className="font-display text-3xl font-extrabold text-white">122.5</span>
                   <span className="text-xs font-semibold text-stone-300">mg/dL avg</span>
                 </div>
               </div>
@@ -119,7 +122,7 @@ export default function LoginPage() {
                 <Sun className="h-4 w-4 text-teal-300 shrink-0" />
                 <div>
                   <p className="text-stone-300 text-[11px]">After Lunch</p>
-                  <p className="font-bold text-white">144 mg/dL</p>
+                  <p className="font-bold text-white">160 mg/dL</p>
                 </div>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 flex items-center gap-2.5">
@@ -133,8 +136,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Sign-In Form Card — Exact same width & height (460px x 580px) as Register */}
-        <div className="w-full max-w-[460px] h-[580px] bg-white rounded-[32px] border border-stone-200/90 shadow-card p-8 sm:p-10 flex flex-col justify-between">
+        {/* Right Sign-In Form Card — Exact same width & height (460px x 620px) as Register */}
+        <div className="w-full max-w-[460px] h-[620px] bg-white rounded-[32px] border border-stone-200/90 shadow-card p-8 sm:p-10 flex flex-col justify-between">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
               Welcome Back
@@ -183,17 +186,31 @@ export default function LoginPage() {
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="mt-1.5 block w-full rounded-2xl border border-stone-300 bg-[#F7F6F2]/60 px-4 py-2.5 text-sm font-medium text-stone-900 placeholder-stone-400 focus:bg-white focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15 transition-all"
-                />
+                <div className="relative mt-1.5">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="block w-full rounded-2xl border border-stone-300 bg-[#F7F6F2]/60 pl-4 pr-11 py-2.5 text-sm font-medium text-stone-900 placeholder-stone-400 focus:bg-white focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/15 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-stone-400 hover:text-stone-700 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <button
