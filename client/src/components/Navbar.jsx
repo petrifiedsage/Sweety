@@ -53,7 +53,7 @@ export default function Navbar() {
             </NavLink>
             <NavLink to="/history" className={pillNavClass}>
               <Clock className="h-3.5 w-3.5" />
-              Logbook
+              History
             </NavLink>
             <NavLink to="/reports" className={pillNavClass}>
               <BarChart2 className="h-3.5 w-3.5" />
@@ -93,7 +93,7 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/history" className={pillNavClass}>
             <Clock className="h-3.5 w-3.5" />
-            Logbook
+            History
           </NavLink>
           <NavLink to="/reports" className={pillNavClass}>
             <BarChart2 className="h-3.5 w-3.5" />

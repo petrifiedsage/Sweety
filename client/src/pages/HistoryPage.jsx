@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Clock,
   CheckCircle2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import SlotIcon from '../components/SlotIcon';
@@ -40,6 +41,7 @@ export default function HistoryPage() {
     total_pages: 1,
   });
   const [page, setPage] = useState(1);
+  const [periodPreset, setPeriodPreset] = useState('ALL');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [slotFilter, setSlotFilter] = useState('ALL');
@@ -81,19 +83,24 @@ export default function HistoryPage() {
   }
 
   function handleResetFilters() {
+    setPeriodPreset('ALL');
     setFromDate('');
     setToDate('');
     setSlotFilter('ALL');
     setPage(1);
   }
 
-  function applyQuickRange(days) {
-    if (days === 'MONTH') {
+  function applyQuickRange(preset) {
+    setPeriodPreset(preset);
+    if (preset === 'ALL') {
+      setFromDate('');
+      setToDate('');
+    } else if (preset === '7D') {
+      setFromDate(shiftDateString(todayStr, -6));
+      setToDate(todayStr);
+    } else if (preset === 'MONTH') {
       const [y, m] = todayStr.split('-');
       setFromDate(`${y}-${m}-01`);
-      setToDate(todayStr);
-    } else {
-      setFromDate(shiftDateString(todayStr, -days));
       setToDate(todayStr);
     }
     setPage(1);
@@ -102,17 +109,17 @@ export default function HistoryPage() {
   async function handleSaveReading(payload) {
     if (editingReading) {
       await updateReading(editingReading.id, payload);
-      showToast('Reading updated successfully.');
+      showToast('Reading updated.');
     } else {
       await createReading(payload);
-      showToast('Reading logged successfully.');
+      showToast('Reading logged.');
     }
     await fetchHistory();
   }
 
   async function handleConfirmDelete(id) {
     await deleteReading(id);
-    showToast('Reading removed from your logbook.');
+    showToast('Reading removed.');
     await fetchHistory();
   }
 
@@ -121,24 +128,18 @@ export default function HistoryPage() {
       ? readings
       : readings.filter((r) => r.time_slot === slotFilter);
 
+  const hasActiveFilters = Boolean(fromDate || toDate || slotFilter !== 'ALL');
+
   return (
-    <div className="min-h-screen bg-[#F7F6F2] pb-16">
+    <div className="min-h-screen bg-[#F7F6F2] pb-10">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
-              Historical Records
-            </span>
-            <h1 className="font-display text-3xl font-extrabold text-stone-900 mt-0.5">
-              Glucose Logbook
-            </h1>
-            <p className="mt-1 text-sm text-stone-500">
-              Review, filter, edit, or remove your recorded blood glucose measurements.
-            </p>
-          </div>
+      <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-4">
+        {/* Page Header — Consistent with Dashboard */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-stone-900">
+            History
+          </h1>
 
           <button
             type="button"
@@ -146,7 +147,7 @@ export default function HistoryPage() {
               setEditingReading(null);
               setFormOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-sm font-semibold text-white hover:bg-teal-700 transition-colors shadow-soft self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-stone-900 text-xs sm:text-sm font-semibold text-white hover:bg-teal-700 transition-all shadow-soft self-start sm:self-auto"
           >
             <Plus className="h-4 w-4" />
             Log Reading
@@ -154,158 +155,148 @@ export default function HistoryPage() {
         </div>
 
         {toast && (
-          <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-soft">
+          <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-200/90 px-4 py-2 text-xs font-semibold text-emerald-800">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>{toast}</span>
           </div>
         )}
 
-        {/* Filter Card */}
-        <div className="bg-white rounded-3xl border border-stone-200/80 p-5 shadow-soft space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* Quick Date Range Pills */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-stone-400 mr-1">
-                Period:
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setFromDate('');
-                  setToDate('');
-                  setPage(1);
-                }}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  !fromDate && !toDate
-                    ? 'bg-stone-900 text-white'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
-                }`}
-              >
-                All Time
-              </button>
-              <button
-                type="button"
-                onClick={() => applyQuickRange(6)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200/70 transition-all"
-              >
-                Last 7 Days
-              </button>
-              <button
-                type="button"
-                onClick={() => applyQuickRange('MONTH')}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200/70 transition-all"
-              >
-                This Month
-              </button>
+        {/* Unified Filters Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/90 px-5 py-3.5 shadow-soft flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-stone-400 mr-1">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-teal-600" />
+              Filters
+            </span>
+
+            {/* Period Pills */}
+            <div className="inline-flex items-center bg-[#F7F6F2] p-1 rounded-full border border-stone-200/80">
+              {[
+                { id: 'ALL', label: 'All Time' },
+                { id: '7D', label: 'Last 7 Days' },
+                { id: 'MONTH', label: 'This Month' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => applyQuickRange(item.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    periodPreset === item.id
+                      ? 'bg-stone-900 text-white shadow-xs'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
 
-            {/* Custom Date Inputs */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-2 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200">
-                <label htmlFor="from-date" className="text-xs font-semibold text-stone-500">
-                  From
-                </label>
-                <input
-                  id="from-date"
-                  type="date"
-                  max={todayStr}
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value);
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200">
-                <label htmlFor="to-date" className="text-xs font-semibold text-stone-500">
-                  To
-                </label>
-                <input
-                  id="to-date"
-                  type="date"
-                  max={todayStr}
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value);
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
-                />
-              </div>
-
-              {(fromDate || toDate || slotFilter !== 'ALL') && (
+            {/* Meal Slot Pills */}
+            <div className="inline-flex flex-wrap items-center bg-[#F7F6F2] p-1 rounded-full border border-stone-200/80">
+              <button
+                type="button"
+                onClick={() => setSlotFilter('ALL')}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  slotFilter === 'ALL'
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900'
+                }`}
+              >
+                All Slots
+              </button>
+              {TIME_SLOTS.map((slot) => (
                 <button
+                  key={slot.code}
                   type="button"
-                  onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                  onClick={() => setSlotFilter(slot.code)}
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    slotFilter === slot.code
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
                 >
-                  <RotateCcw className="h-3 w-3" />
-                  Reset
+                  <SlotIcon slotCode={slot.code} className="h-3 w-3" />
+                  <span>{slot.shortLabel}</span>
                 </button>
-              )}
+              ))}
             </div>
           </div>
 
-          {/* Slot Filter Pill Strip */}
-          <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-stone-400 mr-1">
-              Meal Slot:
-            </span>
-            <button
-              type="button"
-              onClick={() => setSlotFilter('ALL')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                slotFilter === 'ALL'
-                  ? 'bg-teal-600 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
-              }`}
-            >
-              All Slots
-            </button>
-            {TIME_SLOTS.map((slot) => (
+          {/* Date Range Inputs & Reset */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200/80">
+              <label htmlFor="from-date" className="text-[11px] font-semibold text-stone-400">
+                From
+              </label>
+              <input
+                id="from-date"
+                type="date"
+                max={todayStr}
+                value={fromDate}
+                onChange={(e) => {
+                  setPeriodPreset('CUSTOM');
+                  setFromDate(e.target.value);
+                  setPage(1);
+                }}
+                className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200/80">
+              <label htmlFor="to-date" className="text-[11px] font-semibold text-stone-400">
+                To
+              </label>
+              <input
+                id="to-date"
+                type="date"
+                max={todayStr}
+                value={toDate}
+                onChange={(e) => {
+                  setPeriodPreset('CUSTOM');
+                  setToDate(e.target.value);
+                  setPage(1);
+                }}
+                className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
+              />
+            </div>
+
+            {hasActiveFilters && (
               <button
-                key={slot.code}
                 type="button"
-                onClick={() => setSlotFilter(slot.code)}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  slotFilter === slot.code
-                    ? 'bg-teal-600 text-white'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
-                }`}
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
               >
-                <SlotIcon slotCode={slot.code} className="h-3.5 w-3.5" />
-                {slot.label}
+                <RotateCcw className="h-3 w-3" />
+                Reset
               </button>
-            ))}
+            )}
           </div>
         </div>
 
         {error && (
-          <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+          <div className="rounded-2xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-xs font-medium text-rose-700">
             {error}
           </div>
         )}
 
-        {/* Logbook List Card */}
-        <div className="bg-white rounded-3xl border border-stone-200/80 shadow-soft overflow-hidden">
+        {/* History List — Card Typography & Button Sizing Consistent with Dashboard */}
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-soft overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-sm font-medium text-stone-500">
-              Loading your glucose logbook...
+            <div className="p-10 text-center text-xs font-medium text-stone-500">
+              Loading history...
             </div>
           ) : displayedReadings.length === 0 ? (
-            <div className="p-14 text-center">
-              <div className="mx-auto h-12 w-12 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center">
-                <Clock className="h-6 w-6" />
+            <div className="p-12 text-center">
+              <div className="mx-auto h-10 w-10 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center">
+                <Clock className="h-5 w-5" />
               </div>
-              <h3 className="mt-4 font-display text-lg font-extrabold text-stone-900">
-                No readings match your filter
+              <h3 className="mt-3 font-display text-base font-extrabold text-stone-900">
+                No readings found
               </h3>
-              <p className="mt-1 text-sm text-stone-500 max-w-sm mx-auto">
-                {fromDate || toDate || slotFilter !== 'ALL'
-                  ? 'Try adjusting your date range or meal-slot filter to view more entries.'
-                  : 'Start logging your daily blood glucose measurements to build your history.'}
+              <p className="mt-1 text-xs font-medium text-stone-500 max-w-sm mx-auto">
+                {hasActiveFilters
+                  ? 'Try adjusting your filters to view more entries.'
+                  : 'No blood glucose readings have been logged yet.'}
               </p>
             </div>
           ) : (
@@ -319,35 +310,35 @@ export default function HistoryPage() {
                   return (
                     <div
                       key={reading.id}
-                      className="p-5 sm:px-7 hover:bg-[#F7F6F2]/60 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                      className="px-6 py-4 hover:bg-[#F7F6F2]/60 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                     >
-                      {/* Left: Slot Icon, Slot Label & Date */}
-                      <div className="flex items-center gap-4">
+                      {/* Left: Slot Icon, Slot Title & Date (Matches Dashboard Slot Card Header) */}
+                      <div className="flex items-center gap-3">
                         <div
-                          className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${slotMeta.iconBg}`}
+                          className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${slotMeta.iconBg}`}
                         >
                           <SlotIcon slotCode={reading.time_slot} className="h-5 w-5" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-display text-base font-extrabold text-stone-900">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-display text-base font-extrabold text-stone-900">
                               {reading.time_slot_label}
-                            </span>
+                            </h3>
                             <span
-                              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
+                              className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
                             >
                               <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
                               {badge.label}
                             </span>
                           </div>
-                          <p className="text-xs font-medium text-stone-500 mt-0.5">
+                          <p className="text-[11px] font-medium text-stone-500">
                             {formatDisplayDate(reading.reading_date, true)} · {slotMeta.timingHint}
                           </p>
                         </div>
                       </div>
 
-                      {/* Right: Value, Mini Range Gauge, and Edit/Delete Actions */}
-                      <div className="flex items-center justify-between sm:justify-end gap-6">
+                      {/* Right: Range Gauge, Glucose Value, and Edit/Delete Buttons (Matches Dashboard) */}
+                      <div className="flex items-center justify-between sm:justify-end gap-5">
                         <div className="w-28 hidden md:block">
                           <div className="relative h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
                             <div
@@ -359,19 +350,16 @@ export default function HistoryPage() {
                               style={{ width: `${gaugePct}%` }}
                             />
                           </div>
-                          <span className="block text-[10px] font-medium text-stone-400 mt-1 text-right">
-                            70–140 target
-                          </span>
                         </div>
 
-                        <div className="text-right min-w-[90px]">
-                          <span className="font-display text-2xl font-extrabold text-stone-900">
+                        <div className="flex items-baseline gap-1 min-w-[90px] justify-end">
+                          <span className="font-display text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
                             {reading.glucose_value}
                           </span>
-                          <span className="ml-1 text-xs font-bold text-stone-400">mg/dL</span>
+                          <span className="text-xs font-bold text-stone-400">mg/dL</span>
                         </div>
 
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => {
@@ -399,19 +387,19 @@ export default function HistoryPage() {
               </div>
 
               {/* Pagination Footer */}
-              <div className="px-7 py-4 bg-[#F7F6F2]/70 border-t border-stone-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+              <div className="px-6 py-3.5 bg-[#F7F6F2]/70 border-t border-stone-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
                 <span className="font-medium">
                   Page <span className="font-bold text-stone-900">{pagination.page}</span> of{' '}
                   <span className="font-bold text-stone-900">{pagination.total_pages}</span> ·{' '}
                   <span className="font-bold text-stone-900">{pagination.total}</span> total readings
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-stone-300 bg-white font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                     Previous
@@ -420,7 +408,7 @@ export default function HistoryPage() {
                     type="button"
                     disabled={page >= pagination.total_pages}
                     onClick={() => setPage((p) => p + 1)}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-stone-300 bg-white font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
                   >
                     Next
                     <ChevronRight className="h-3.5 w-3.5" />
