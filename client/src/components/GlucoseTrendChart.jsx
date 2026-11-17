@@ -50,37 +50,32 @@ export default function GlucoseTrendChart({ readings = [], title = 'Glucose Tren
   }
 
   return (
-    <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-soft">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h3 className="font-display text-lg font-extrabold text-stone-900">{title}</h3>
-          <p className="text-xs font-medium text-stone-500 mt-0.5">
-            Daily average, peak, and minimum blood glucose measurements (mg/dL)
-          </p>
-        </div>
+    <div className="bg-white rounded-3xl border border-stone-200/90 px-6 py-5 shadow-soft">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h3 className="font-display text-base font-extrabold text-stone-900">{title}</h3>
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-stone-600">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-teal-600" />
-            Daily Average
+            <span className="h-2 w-2 rounded-full bg-teal-600" />
+            Average
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
-            Daily High
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            Highest
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-            Daily Low
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            Lowest
           </span>
         </div>
       </div>
 
-      <div className="h-72 w-full">
+      <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 5 }}>
+          <AreaChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
             <defs>
               <linearGradient id="avgGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0D9488" stopOpacity={0.22} />
+                <stop offset="5%" stopColor="#0D9488" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0} />
               </linearGradient>
             </defs>
@@ -112,17 +107,17 @@ export default function GlucoseTrendChart({ readings = [], title = 'Glucose Tren
             <Area
               type="monotone"
               dataKey="average"
-              name="Daily Average (mg/dL)"
+              name="Average (mg/dL)"
               stroke="#0D9488"
-              strokeWidth={3}
+              strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#avgGradient)"
-              dot={{ r: 4, fill: '#0D9488', strokeWidth: 2, stroke: '#fff' }}
+              dot={{ r: 3.5, fill: '#0D9488', strokeWidth: 2, stroke: '#fff' }}
             />
             <Line
               type="monotone"
               dataKey="highest"
-              name="Daily High (mg/dL)"
+              name="Highest (mg/dL)"
               stroke="#F43F5E"
               strokeWidth={2}
               strokeDasharray="4 2"
@@ -131,7 +126,7 @@ export default function GlucoseTrendChart({ readings = [], title = 'Glucose Tren
             <Line
               type="monotone"
               dataKey="lowest"
-              name="Daily Low (mg/dL)"
+              name="Lowest (mg/dL)"
               stroke="#F59E0B"
               strokeWidth={2}
               strokeDasharray="4 2"

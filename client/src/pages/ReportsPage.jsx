@@ -22,21 +22,15 @@ import {
 const REPORT_TABS = [
   {
     id: 'daily',
-    label: 'Daily Report',
-    shortLabel: 'Daily',
-    description: 'Detailed statistics and slot breakdown for the selected calendar date.',
+    label: 'Daily',
   },
   {
     id: 'mtd',
-    label: 'Month-to-Date',
-    shortLabel: 'Month-to-Date',
-    description: 'Cumulative statistics from the 1st of the selected month through the selected date.',
+    label: 'This Month',
   },
   {
     id: 'monthly',
-    label: 'Previous Month',
-    shortLabel: 'Previous Month',
-    description: 'Complete statistical summary across the entire previous calendar month.',
+    label: 'Last Month',
   },
 ];
 
@@ -87,11 +81,10 @@ export default function ReportsPage() {
   }
 
   const currentReport = reports[activeTab];
-  const currentTabMeta = REPORT_TABS.find((t) => t.id === activeTab);
   const readings = currentReport?.readings || [];
   const hasReadings = (currentReport?.statistics?.total_readings || 0) > 0;
 
-  // Compute Time-in-Range distribution percentages
+  // Compute simple Reading Breakdown percentages
   const rangeDistribution = useMemo(() => {
     if (!readings.length) return null;
     const total = readings.length;
@@ -115,23 +108,15 @@ export default function ReportsPage() {
   }, [readings]);
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] pb-16">
+    <div className="min-h-screen bg-[#F7F6F2] pb-10">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
-        {/* Top Header & Date Navigator */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
-              Analytics &amp; Summaries
-            </span>
-            <h1 className="font-display text-3xl font-extrabold text-stone-900 mt-0.5">
-              Glucose Insights
-            </h1>
-            <p className="mt-1 text-sm text-stone-500">
-              Compare your daily, month-to-date, and previous-month blood glucose metrics.
-            </p>
-          </div>
+      <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-4">
+        {/* Top Header & Date Navigator — Consistent with Dashboard & History */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-stone-900">
+            Reports
+          </h1>
 
           <DateNavigator
             id="report-date"
@@ -140,9 +125,9 @@ export default function ReportsPage() {
           />
         </div>
 
-        {/* Apple Health Segmented Control + Period Banner */}
-        <div className="bg-white rounded-3xl border border-stone-200/80 p-5 sm:p-6 shadow-soft flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="inline-flex flex-wrap items-center gap-1 bg-stone-100 p-1.5 rounded-full border border-stone-200/70 self-start">
+        {/* Report Switcher & Date Range Bar — Consistent with History Filter Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/90 px-5 py-3.5 shadow-soft flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center bg-[#F7F6F2] p-1 rounded-full border border-stone-200/80">
             {REPORT_TABS.map((tab) => {
               const active = activeTab === tab.id;
               return (
@@ -150,9 +135,9 @@ export default function ReportsPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
                     active
-                      ? 'bg-stone-900 text-white shadow-sm'
+                      ? 'bg-stone-900 text-white shadow-xs'
                       : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
@@ -163,10 +148,9 @@ export default function ReportsPage() {
           </div>
 
           {currentReport && (
-            <div className="flex items-center gap-2.5 text-xs font-semibold text-stone-700 bg-[#F7F6F2] px-4 py-2 rounded-full border border-stone-200/80 self-start md:self-auto">
-              <CalendarRange className="h-4 w-4 text-teal-600" />
-              <span className="text-stone-500">Report Period:</span>
-              <span className="font-bold text-stone-900">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 bg-[#F7F6F2] px-3.5 py-1.5 rounded-full border border-stone-200/80">
+              <CalendarRange className="h-3.5 w-3.5 text-teal-600" />
+              <span className="font-bold text-stone-800">
                 {currentReport.date_range.from === currentReport.date_range.to
                   ? formatDisplayDate(currentReport.date_range.from, true)
                   : `${formatDisplayDate(currentReport.date_range.from)} – ${formatDisplayDate(
@@ -178,19 +162,19 @@ export default function ReportsPage() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2.5 rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+          <div className="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-xs font-medium text-rose-700">
             <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {loading ? (
-          <div className="bg-white rounded-3xl border border-stone-200/80 p-14 text-center text-sm font-medium text-stone-500">
-            Calculating report statistics...
+          <div className="bg-white rounded-3xl border border-stone-200/90 p-10 text-center text-xs font-medium text-stone-500">
+            Loading report...
           </div>
         ) : (
           currentReport && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* 4 Summary Metric Cards */}
               <StatCards
                 statistics={currentReport.statistics}
@@ -198,15 +182,15 @@ export default function ReportsPage() {
               />
 
               {!hasReadings ? (
-                <div className="bg-white rounded-3xl border border-stone-200/80 p-14 text-center shadow-soft">
-                  <div className="mx-auto h-14 w-14 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center">
-                    <FileBarChart className="h-7 w-7" />
+                <div className="bg-white rounded-3xl border border-stone-200/90 p-12 text-center shadow-soft">
+                  <div className="mx-auto h-10 w-10 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center">
+                    <FileBarChart className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-4 font-display text-xl font-extrabold text-stone-900">
-                    No readings in this period
+                  <h3 className="mt-3 font-display text-base font-extrabold text-stone-900">
+                    No readings for this period
                   </h3>
-                  <p className="mt-1.5 text-sm text-stone-500 max-w-md mx-auto">
-                    There are no recorded measurements between{' '}
+                  <p className="mt-1 text-xs font-medium text-stone-500 max-w-sm mx-auto">
+                    No blood glucose readings were logged between{' '}
                     <span className="font-semibold text-stone-800">
                       {formatDisplayDate(currentReport.date_range.from)}
                     </span>{' '}
@@ -214,94 +198,89 @@ export default function ReportsPage() {
                     <span className="font-semibold text-stone-800">
                       {formatDisplayDate(currentReport.date_range.to)}
                     </span>
-                    . Select another date above or log a new reading.
+                    .
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Time-in-Range Distribution Bar */}
+                  {/* Simple Healthy Range Breakdown */}
                   {rangeDistribution && (
-                    <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-soft">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                    <div className="bg-white rounded-3xl border border-stone-200/90 px-6 py-5 shadow-soft">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                         <div>
-                          <h3 className="font-display text-lg font-extrabold text-stone-900">
-                            Time in Range Distribution
+                          <h3 className="font-display text-base font-extrabold text-stone-900">
+                            Healthy Range Summary
                           </h3>
-                          <p className="text-xs font-medium text-stone-500">
+                          <p className="text-[11px] font-medium text-stone-500">
                             {rangeDistribution.inTargetCount} of {rangeDistribution.total}{' '}
-                            readings ({rangeDistribution.inTargetPct}%) fell within the optimal
-                            70–140 mg/dL target zone
+                            readings were normal (70–140 mg/dL)
                           </p>
                         </div>
-                        <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full self-start sm:self-auto">
-                          {rangeDistribution.inTargetPct}% In Target Range
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+                          {rangeDistribution.inTargetPct}% Normal
                         </span>
                       </div>
 
                       {/* Segmented Bar */}
-                      <div className="h-3.5 w-full rounded-full bg-stone-100 overflow-hidden flex">
+                      <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden flex">
                         {rangeDistribution.lowPct > 0 && (
                           <div
                             className="bg-amber-400 h-full transition-all duration-500"
                             style={{ width: `${rangeDistribution.lowPct}%` }}
-                            title={`Below Target (<70): ${rangeDistribution.lowPct}%`}
                           />
                         )}
                         {rangeDistribution.inTargetPct > 0 && (
                           <div
                             className="bg-emerald-500 h-full transition-all duration-500"
                             style={{ width: `${rangeDistribution.inTargetPct}%` }}
-                            title={`In Target (70–140): ${rangeDistribution.inTargetPct}%`}
                           />
                         )}
                         {rangeDistribution.moderatePct > 0 && (
                           <div
                             className="bg-sky-500 h-full transition-all duration-500"
                             style={{ width: `${rangeDistribution.moderatePct}%` }}
-                            title={`Slightly Elevated (141–180): ${rangeDistribution.moderatePct}%`}
                           />
                         )}
                         {rangeDistribution.highPct > 0 && (
                           <div
                             className="bg-rose-500 h-full transition-all duration-500"
                             style={{ width: `${rangeDistribution.highPct}%` }}
-                            title={`High (>180): ${rangeDistribution.highPct}%`}
                           />
                         )}
                       </div>
 
-                      <div className="mt-3.5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
                           <span className="text-stone-600">
-                            In Range (70–140):{' '}
+                            Normal (70–140):{' '}
                             <strong className="text-stone-900">
                               {rangeDistribution.inTargetPct}%
                             </strong>
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-sky-500" />
                           <span className="text-stone-600">
-                            141–180 mg/dL:{' '}
+                            Slightly High (141–180):{' '}
                             <strong className="text-stone-900">
                               {rangeDistribution.moderatePct}%
                             </strong>
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-amber-400" />
                           <span className="text-stone-600">
-                            Below 70 mg/dL:{' '}
+                            Low (&lt;70):{' '}
                             <strong className="text-stone-900">
                               {rangeDistribution.lowPct}%
                             </strong>
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                        <div className="flex items-center gap-1.5">
+                          <span className="h-2 w-2 rounded-full bg-rose-500" />
                           <span className="text-stone-600">
-                            Above 180 mg/dL:{' '}
+                            High (&gt;180):{' '}
                             <strong className="text-stone-900">
                               {rangeDistribution.highPct}%
                             </strong>
@@ -312,26 +291,16 @@ export default function ReportsPage() {
                   )}
 
                   {/* Interactive Recharts Trend Chart */}
-                  <GlucoseTrendChart
-                    readings={readings}
-                    title={`${currentTabMeta?.label} — Glucose Trend`}
-                  />
+                  <GlucoseTrendChart readings={readings} title="Glucose Trend" />
 
-                  {/* Detailed Readings Breakdown */}
-                  <div className="bg-white rounded-3xl border border-stone-200/80 shadow-soft overflow-hidden">
-                    <div className="px-7 py-5 border-b border-stone-100 flex items-center justify-between">
-                      <div>
-                        <h3 className="font-display text-lg font-extrabold text-stone-900">
-                          {activeTab === 'daily'
-                            ? 'Daily Reading History'
-                            : 'Measurements Included in Report'}
-                        </h3>
-                        <p className="text-xs font-medium text-stone-500 mt-0.5">
-                          {currentTabMeta?.description}
-                        </p>
-                      </div>
-                      <span className="text-xs font-bold text-stone-600 bg-stone-100 px-3 py-1 rounded-full">
-                        {readings.length} {readings.length === 1 ? 'entry' : 'entries'}
+                  {/* Readings List — Matches Dashboard & History Sizing */}
+                  <div className="bg-white rounded-3xl border border-stone-200/90 shadow-soft overflow-hidden">
+                    <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+                      <h3 className="font-display text-base font-extrabold text-stone-900">
+                        Readings
+                      </h3>
+                      <span className="text-[11px] font-bold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full">
+                        {readings.length} {readings.length === 1 ? 'reading' : 'readings'}
                       </span>
                     </div>
 
@@ -344,20 +313,28 @@ export default function ReportsPage() {
                         return (
                           <div
                             key={r.id}
-                            className="px-7 py-4 flex items-center justify-between gap-4 hover:bg-[#F7F6F2]/50 transition-colors"
+                            className="px-6 py-4 flex items-center justify-between gap-3 hover:bg-[#F7F6F2]/60 transition-colors"
                           >
-                            <div className="flex items-center gap-3.5">
+                            <div className="flex items-center gap-3">
                               <div
                                 className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${slotMeta.iconBg}`}
                               >
                                 <SlotIcon slotCode={r.time_slot} className="h-5 w-5" />
                               </div>
                               <div>
-                                <p className="font-display text-sm font-extrabold text-stone-900">
-                                  {r.time_slot_label}
-                                </p>
-                                <p className="text-xs font-medium text-stone-500">
-                                  {formatDisplayDate(r.reading_date, true)}
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-display text-base font-extrabold text-stone-900">
+                                    {r.time_slot_label}
+                                  </h4>
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
+                                  >
+                                    <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+                                    {badge.label}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] font-medium text-stone-500">
+                                  {formatDisplayDate(r.reading_date, true)} · {slotMeta.timingHint}
                                 </p>
                               </div>
                             </div>
@@ -376,18 +353,11 @@ export default function ReportsPage() {
                                 </div>
                               </div>
 
-                              <span
-                                className={`hidden md:inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
-                              >
-                                <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
-                                {badge.label}
-                              </span>
-
-                              <div className="text-right min-w-[85px]">
-                                <span className="font-display text-xl font-extrabold text-stone-900">
+                              <div className="flex items-baseline gap-1 min-w-[90px] justify-end">
+                                <span className="font-display text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
                                   {r.glucose_value}
                                 </span>
-                                <span className="ml-1 text-xs font-bold text-stone-400">
+                                <span className="text-xs font-bold text-stone-400">
                                   mg/dL
                                 </span>
                               </div>

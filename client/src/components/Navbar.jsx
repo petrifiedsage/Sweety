@@ -57,7 +57,7 @@ export default function Navbar() {
             </NavLink>
             <NavLink to="/reports" className={pillNavClass}>
               <BarChart2 className="h-3.5 w-3.5" />
-              Insights
+              Reports
             </NavLink>
           </nav>
 
@@ -97,7 +97,7 @@ export default function Navbar() {
           </NavLink>
           <NavLink to="/reports" className={pillNavClass}>
             <BarChart2 className="h-3.5 w-3.5" />
-            Insights
+            Reports
           </NavLink>
         </nav>
       </div>
