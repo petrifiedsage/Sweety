@@ -40,6 +40,16 @@ export default function ReportsPage() {
   const initialDate = searchParams.get('date') || todayStr;
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [activeTab, setActiveTab] = useState('daily');
+  const [tabFading, setTabFading] = useState(false);
+
+  function handleSwitchReportTab(newTabId) {
+    if (newTabId === activeTab) return;
+    setTabFading(true);
+    setTimeout(() => {
+      setActiveTab(newTabId);
+      setTabFading(false);
+    }, 150);
+  }
 
   const [reports, setReports] = useState({
     daily: null,
@@ -131,7 +141,7 @@ export default function ReportsPage() {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleSwitchReportTab(tab.id)}
                   className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
                     active
                       ? 'bg-stone-900 text-white shadow-xs'
@@ -171,7 +181,11 @@ export default function ReportsPage() {
           </div>
         ) : (
           currentReport && (
-            <div className="space-y-4">
+            <div
+              className={`space-y-4 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                tabFading ? 'opacity-0 translate-y-1' : 'opacity-100 translate-y-0'
+              }`}
+            >
               {/* 4 Summary Metric Cards */}
               <StatCards
                 statistics={currentReport.statistics}

@@ -9,15 +9,19 @@ import {
 } from 'react-icons/io5';
 import GradientMenu from '@/components/ui/gradient-menu';
 import { useAuth } from '../context/AuthContext';
+import { useAppTransition } from '../App';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { triggerLogoutExit } = useAppTransition();
   const navigate = useNavigate();
   const location = useLocation();
 
   function handleLogout() {
-    logout();
-    navigate('/login');
+    triggerLogoutExit(() => {
+      logout();
+      navigate('/login');
+    });
   }
 
   const initials = user?.name
