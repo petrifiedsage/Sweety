@@ -22,58 +22,53 @@ export default function Navbar() {
     : 'U';
 
   const pillNavClass = ({ isActive }) =>
-    `inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+    `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
       isActive
         ? 'bg-stone-900 text-white shadow-sm'
         : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
     }`;
 
   return (
-    <header className="sticky top-0 z-30 bg-[#F7F6F2]/85 backdrop-blur-md border-b border-stone-200/70">
+    <header className="sticky top-0 z-30 bg-[#F7F6F2]/90 backdrop-blur-md border-b border-stone-200/70">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
-          <NavLink to="/dashboard" className="flex items-center gap-3 group">
-            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-              <HeartPulse className="h-5 w-5" />
+          <NavLink to="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+              <HeartPulse className="h-4 w-4" />
             </div>
-            <div>
-              <span className="font-display text-xl font-extrabold tracking-tight text-stone-900">
-                Sweety
-              </span>
-              <span className="block text-[11px] font-medium text-stone-500 -mt-0.5">
-                Glucose Wellness
-              </span>
-            </div>
+            <span className="font-display text-lg font-extrabold tracking-tight text-stone-900">
+              Sweety
+            </span>
           </NavLink>
 
           {/* Center Apple Health Style Pill Navigation */}
           <nav
             aria-label="Main navigation"
-            className="hidden md:flex items-center gap-1 bg-stone-200/70 p-1.5 rounded-full border border-stone-200/80"
+            className="hidden md:flex items-center gap-1 bg-stone-200/70 p-1 rounded-full border border-stone-200/80"
           >
             <NavLink to="/dashboard" className={pillNavClass}>
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-3.5 w-3.5" />
               Today
             </NavLink>
             <NavLink to="/history" className={pillNavClass}>
-              <Clock className="h-4 w-4" />
+              <Clock className="h-3.5 w-3.5" />
               Logbook
             </NavLink>
             <NavLink to="/reports" className={pillNavClass}>
-              <BarChart2 className="h-4 w-4" />
+              <BarChart2 className="h-3.5 w-3.5" />
               Insights
             </NavLink>
           </nav>
 
           {/* User Profile Pill & Sign Out */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {user && (
-              <div className="hidden sm:flex items-center gap-2.5 bg-white pl-1.5 pr-3.5 py-1.5 rounded-full border border-stone-200/80 shadow-soft">
-                <div className="h-7 w-7 rounded-full bg-teal-100 text-teal-800 text-xs font-bold flex items-center justify-center">
+              <div className="hidden sm:flex items-center gap-2 bg-white pl-1.5 pr-3 py-1 rounded-full border border-stone-200/80 shadow-soft">
+                <div className="h-6 w-6 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold flex items-center justify-center">
                   {initials}
                 </div>
-                <span className="text-xs font-semibold text-stone-800 max-w-[140px] truncate">
+                <span className="text-xs font-semibold text-stone-800 max-w-[130px] truncate">
                   {user.name}
                 </span>
               </div>
@@ -82,7 +77,7 @@ export default function Navbar() {
               type="button"
               onClick={handleLogout}
               title="Sign out"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-stone-600 bg-white border border-stone-200/80 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors shadow-soft"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-stone-600 bg-white border border-stone-200/80 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors shadow-soft"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span>Sign out</span>
@@ -91,7 +86,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Pill Switcher */}
-        <nav className="flex md:hidden items-center justify-center gap-1 bg-stone-200/70 p-1 rounded-full mb-3">
+        <nav className="flex md:hidden items-center justify-center gap-1 bg-stone-200/70 p-1 rounded-full mb-2.5">
           <NavLink to="/dashboard" className={pillNavClass}>
             <LayoutGrid className="h-3.5 w-3.5" />
             Today
