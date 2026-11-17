@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Calendar, FileBarChart, AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
+import GlucoseTrendChart from '../components/GlucoseTrendChart';
 import {
   fetchDailyReport,
   fetchMonthToDateReport,
@@ -170,6 +171,14 @@ export default function ReportsPage() {
                 statistics={currentReport.statistics}
                 maxDaily={activeTab === 'daily' ? 4 : null}
               />
+
+              {/* Bonus Feature: Glucose Trend Chart */}
+              {hasReadings && (
+                <GlucoseTrendChart
+                  readings={currentReport.readings}
+                  title={`${currentTabMeta?.label} — Glucose Trend`}
+                />
+              )}
 
               {/* Empty State vs Reading Breakdown */}
               {!hasReadings ? (
