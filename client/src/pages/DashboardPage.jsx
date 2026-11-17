@@ -2,16 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus,
-  Calendar,
   Pencil,
   Trash2,
-  BarChart3,
+  BarChart2,
   Clock,
   CheckCircle2,
   AlertCircle,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
+import DateNavigator from '../components/DateNavigator';
+import SlotIcon from '../components/SlotIcon';
 import ReadingFormModal from '../components/ReadingFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +29,7 @@ import {
   getTodayDateString,
   formatDisplayDate,
   getGlucoseBadgeStyle,
+  getGlucoseGaugePercent,
 } from '../utils/constants';
 
 function calculateLocalStats(readings) {
@@ -51,6 +55,13 @@ function calculateLocalStats(readings) {
   };
 }
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const todayStr = getTodayDateString();
@@ -64,7 +75,6 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingReading, setEditingReading] = useState(null);
   const [defaultSlot, setDefaultSlot] = useState('MORNING_FASTING');
-
   const [deletingReading, setDeletingReading] = useState(null);
 
   const loadDailyReadings = useCallback(async () => {
@@ -113,10 +123,10 @@ export default function DashboardPage() {
   async function handleSaveReading(payload) {
     if (editingReading) {
       await updateReading(editingReading.id, payload);
-      showSuccessToast('Reading updated successfully.');
+      showSuccessToast('Reading updated in your logbook.');
     } else {
       await createReading(payload);
-      showSuccessToast('Reading added successfully.');
+      showSuccessToast('Reading logged successfully.');
     }
     if (payload.reading_date !== selectedDate) {
       setSelectedDate(payload.reading_date);
@@ -127,7 +137,7 @@ export default function DashboardPage() {
 
   async function handleConfirmDelete(readingId) {
     await deleteReading(readingId);
-    showSuccessToast('Reading deleted.');
+    showSuccessToast('Reading removed from your logbook.');
     await loadDailyReadings();
   }
 
@@ -137,52 +147,62 @@ export default function DashboardPage() {
     return acc;
   }, {});
 
+  const inTargetCount = readings.filter(
+    (r) => r.glucose_value >= 70 && r.glucose_value <= 140
+  ).length;
+
+  const firstName = user?.name ? user.name.split(' ')[0] : 'there';
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F7F6F2] pb-16">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Welcome & Date Selector Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Top Hero Wellness Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Welcome back, {user?.name || 'there'}
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-200/80 px-3 py-1 rounded-full mb-2.5">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Daily Health Summary</span>
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-stone-900">
+              {getGreeting()}, {firstName}
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Track up to four meal-based blood glucose measurements each day.
+            <p className="mt-1 text-sm text-stone-500">
+              Your structured 4-slot blood glucose check-in for{' '}
+              <span className="font-semibold text-stone-800">
+                {formatDisplayDate(selectedDate, true)}
+              </span>
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2">
-              <Calendar className="h-4 w-4 text-teal-600" />
-              <label htmlFor="dashboard-date" className="text-xs font-medium text-slate-600">
-                Date:
-              </label>
-              <input
-                id="dashboard-date"
-                type="date"
-                max={todayStr}
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-slate-900 focus:outline-none"
-              />
-            </div>
+            <DateNavigator
+              id="dashboard-date"
+              selectedDate={selectedDate}
+              onChange={setSelectedDate}
+            />
 
             <button
               type="button"
               onClick={() => handleOpenAdd()}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-sm font-semibold text-white hover:bg-teal-700 transition-colors shadow-xs"
+              disabled={readings.length >= 4}
+              title={
+                readings.length >= 4
+                  ? 'All 4 daily slots are filled for this date'
+                  : 'Log a blood glucose reading'
+              }
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-40 disabled:pointer-events-none transition-all shadow-soft"
             >
               <Plus className="h-4 w-4" />
-              Add Reading
+              Log Reading
             </button>
           </div>
         </div>
 
         {/* Toast Notification */}
         {toast && (
-          <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-medium text-emerald-800">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-200/90 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-soft">
             <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>{toast}</span>
           </div>
@@ -190,89 +210,159 @@ export default function DashboardPage() {
 
         {/* Error Alert */}
         {error && (
-          <div className="flex items-center gap-2.5 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-rose-50 border border-rose-200/90 px-4 py-3 text-sm font-medium text-rose-700">
             <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Daily Statistics Cards */}
+        {/* 4 Apple Health Summary Metric Cards */}
         <section aria-label="Daily statistics">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-slate-800">
-              Daily Summary — {formatDisplayDate(selectedDate)}
-            </h2>
-            <Link
-              to={`/reports?date=${selectedDate}`}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-600 hover:text-teal-700"
-            >
-              <BarChart3 className="h-4 w-4" />
-              View Full Reports
-            </Link>
-          </div>
           <StatCards statistics={dailyStats} maxDaily={4} />
         </section>
 
-        {/* Daily 4 Time Slots Grid */}
-        <section aria-label="Daily time slots">
-          <h2 className="text-base font-bold text-slate-800 mb-3">
-            Daily Time Slots ({readings.length}/4 recorded)
-          </h2>
+        {/* Unified 4-Slot Daily Check-in Grid */}
+        <section aria-label="Daily meal-slot check-ins" className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 className="font-display text-xl font-extrabold text-stone-900">
+                Daily Check-In Slots
+              </h2>
+              <p className="text-xs font-medium text-stone-500">
+                Tap any empty slot to log a measurement, or edit existing entries directly
+              </p>
+            </div>
+
+            {readings.length > 0 && (
+              <div className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 bg-white px-3.5 py-1.5 rounded-full border border-stone-200/80 shadow-soft">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span>
+                  {inTargetCount} of {readings.length} in optimal range (70–140 mg/dL)
+                </span>
+              </div>
+            )}
+          </div>
 
           {loading ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-sm text-slate-500">
-              Loading daily readings...
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="h-52 rounded-3xl bg-white border border-stone-200/70 p-6 animate-pulse"
+                />
+              ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {TIME_SLOTS.map((slot) => {
                 const record = readingsBySlot[slot.code];
                 const badge = record ? getGlucoseBadgeStyle(record.glucose_value) : null;
+                const gaugePct = record ? getGlucoseGaugePercent(record.glucose_value) : 0;
 
                 return (
                   <div
                     key={slot.code}
-                    className={`rounded-2xl border p-5 transition-all flex flex-col justify-between ${
+                    className={`rounded-3xl p-6 transition-all flex flex-col justify-between ${
                       record
-                        ? 'bg-white border-slate-200 shadow-xs'
-                        : 'bg-slate-50/70 border-dashed border-slate-300'
+                        ? 'bg-white border border-stone-200/90 shadow-soft hover:shadow-card'
+                        : 'bg-white/60 border-2 border-dashed border-stone-300/80 hover:border-teal-500/60 hover:bg-white'
                     }`}
                   >
+                    {/* Top Row: Slot Icon, Title & Status Badge */}
                     <div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                          <Clock className="h-3.5 w-3.5 text-teal-600" />
-                          Slot {slot.order}
-                        </span>
-                        {badge && (
-                          <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3.5">
+                          <div
+                            className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${slot.iconBg}`}
                           >
+                            <SlotIcon slotCode={slot.code} className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                                Slot {slot.order}
+                              </span>
+                            </div>
+                            <h3 className="font-display text-lg font-extrabold text-stone-900">
+                              {slot.label}
+                            </h3>
+                            <p className="text-xs font-medium text-stone-500">
+                              {slot.timingHint}
+                            </p>
+                          </div>
+                        </div>
+
+                        {badge ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${badge.bg}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
                             {badge.label}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold text-stone-400 bg-stone-100 px-3 py-1 rounded-full">
+                            Not logged
                           </span>
                         )}
                       </div>
-                      <h3 className="mt-2 text-base font-bold text-slate-900">{slot.label}</h3>
 
+                      {/* Middle Row: Value & Range Bar OR Empty Invitation */}
                       {record ? (
-                        <div className="mt-3 flex items-baseline gap-1.5">
-                          <span className="text-3xl font-extrabold text-slate-900">
-                            {record.glucose_value}
-                          </span>
-                          <span className="text-xs font-medium text-slate-500">mg/dL</span>
+                        <div className="mt-6">
+                          <div className="flex items-baseline justify-between">
+                            <div className="flex items-baseline gap-2">
+                              <span className="font-display text-5xl font-extrabold text-stone-900 tracking-tight">
+                                {record.glucose_value}
+                              </span>
+                              <span className="text-sm font-bold text-stone-400">mg/dL</span>
+                            </div>
+                            <span className="text-xs font-medium text-stone-400">
+                              Target: 70–140
+                            </span>
+                          </div>
+
+                          {/* Visual Range Spectrum Bar */}
+                          <div className="mt-3.5">
+                            <div className="relative h-2 w-full rounded-full bg-stone-100 overflow-hidden">
+                              <div
+                                className="absolute top-0 bottom-0 bg-emerald-200/60"
+                                style={{ left: '22%', width: '40%' }}
+                              />
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${badge.bar}`}
+                                style={{ width: `${gaugePct}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
                       ) : (
-                        <p className="mt-3 text-sm text-slate-400">No reading recorded</p>
+                        <div className="mt-6 py-3 px-4 rounded-2xl bg-[#F7F6F2]/80 border border-stone-200/60 flex items-center justify-between">
+                          <span className="text-xs font-medium text-stone-500">
+                            Ready to record your {slot.label.toLowerCase()} level?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenAdd(slot.code)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 transition-colors shadow-sm shrink-0"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Log {slot.shortLabel}
+                          </button>
+                        </div>
                       )}
                     </div>
 
-                    <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                      {record ? (
-                        <>
+                    {/* Footer Actions for Logged Slot */}
+                    {record && (
+                      <div className="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between">
+                        <span className="text-xs font-medium text-stone-400">
+                          {formatDisplayDate(record.reading_date)}
+                        </span>
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(record)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 transition-colors"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                             Edit
@@ -280,23 +370,14 @@ export default function DashboardPage() {
                           <button
                             type="button"
                             onClick={() => setDeletingReading(record)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Delete
                           </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAdd(slot.code)}
-                          className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Record {slot.label}
-                        </button>
-                      )}
-                    </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -304,99 +385,48 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Daily Reading History Table */}
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Readings for {formatDisplayDate(selectedDate)}
-              </h2>
-              <p className="text-xs text-slate-500">
-                Manage measurements recorded on the selected date
-              </p>
+        {/* Bottom Wellness Navigation Cards (Insights & Full Logbook) */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <Link
+            to={`/reports?date=${selectedDate}`}
+            className="group bg-white rounded-3xl border border-stone-200/80 p-6 shadow-soft hover:shadow-card transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                <BarChart2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-display text-base font-extrabold text-stone-900 group-hover:text-teal-700 transition-colors">
+                  Explore Reports &amp; Monthly Trends
+                </h3>
+                <p className="text-xs font-medium text-stone-500 mt-0.5">
+                  View Daily, Month-to-Date, and Previous Month analytics for{' '}
+                  {formatDisplayDate(selectedDate)}
+                </p>
+              </div>
             </div>
-            <Link
-              to="/history"
-              className="text-sm font-semibold text-teal-600 hover:text-teal-700"
-            >
-              All History →
-            </Link>
-          </div>
+            <ArrowRight className="h-5 w-5 text-stone-400 group-hover:text-teal-700 group-hover:translate-x-1 transition-all shrink-0" />
+          </Link>
 
-          {readings.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="text-sm font-medium text-slate-700">
-                No readings recorded for {formatDisplayDate(selectedDate)}.
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Click &ldquo;Add Reading&rdquo; above to log your first measurement for this date.
-              </p>
+          <Link
+            to="/history"
+            className="group bg-white rounded-3xl border border-stone-200/80 p-6 shadow-soft hover:shadow-card transition-all flex items-center justify-between"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-stone-100 text-stone-700 flex items-center justify-center shrink-0">
+                <Clock className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-display text-base font-extrabold text-stone-900 group-hover:text-teal-700 transition-colors">
+                  Browse Complete Reading Logbook
+                </h3>
+                <p className="text-xs font-medium text-stone-500 mt-0.5">
+                  Filter historical readings by date range, time slot, and status
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Time Slot
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Glucose Value
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {readings.map((reading) => {
-                    const badge = getGlucoseBadgeStyle(reading.glucose_value);
-                    return (
-                      <tr key={reading.id} className="hover:bg-slate-50/70">
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-700">
-                          {formatDisplayDate(reading.reading_date)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">
-                          {reading.time_slot_label}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="font-bold text-slate-900">
-                            {reading.glucose_value} mg/dL
-                          </span>
-                          <span
-                            className={`ml-2.5 text-xs font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}
-                          >
-                            {badge.label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(reading)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingReading(reading)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+            <ArrowRight className="h-5 w-5 text-stone-400 group-hover:text-teal-700 group-hover:translate-x-1 transition-all shrink-0" />
+          </Link>
         </section>
       </main>
 

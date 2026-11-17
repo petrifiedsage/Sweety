@@ -5,10 +5,12 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  Filter,
   RotateCcw,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import SlotIcon from '../components/SlotIcon';
 import ReadingFormModal from '../components/ReadingFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 import {
@@ -18,9 +20,13 @@ import {
   deleteReading,
 } from '../api/readingsApi';
 import {
+  TIME_SLOTS,
   getTodayDateString,
+  shiftDateString,
   formatDisplayDate,
   getGlucoseBadgeStyle,
+  getGlucoseGaugePercent,
+  getSlotMeta,
 } from '../utils/constants';
 
 export default function HistoryPage() {
@@ -36,8 +42,10 @@ export default function HistoryPage() {
   const [page, setPage] = useState(1);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [slotFilter, setSlotFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingReading, setEditingReading] = useState(null);
@@ -67,36 +75,68 @@ export default function HistoryPage() {
     fetchHistory();
   }, [fetchHistory]);
 
+  function showToast(msg) {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
+  }
+
   function handleResetFilters() {
     setFromDate('');
     setToDate('');
+    setSlotFilter('ALL');
+    setPage(1);
+  }
+
+  function applyQuickRange(days) {
+    if (days === 'MONTH') {
+      const [y, m] = todayStr.split('-');
+      setFromDate(`${y}-${m}-01`);
+      setToDate(todayStr);
+    } else {
+      setFromDate(shiftDateString(todayStr, -days));
+      setToDate(todayStr);
+    }
     setPage(1);
   }
 
   async function handleSaveReading(payload) {
     if (editingReading) {
       await updateReading(editingReading.id, payload);
+      showToast('Reading updated successfully.');
     } else {
       await createReading(payload);
+      showToast('Reading logged successfully.');
     }
     await fetchHistory();
   }
 
   async function handleConfirmDelete(id) {
     await deleteReading(id);
+    showToast('Reading removed from your logbook.');
     await fetchHistory();
   }
 
+  const displayedReadings =
+    slotFilter === 'ALL'
+      ? readings
+      : readings.filter((r) => r.time_slot === slotFilter);
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F7F6F2] pb-16">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+        {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Reading History</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              View, filter, edit, or delete your historical blood glucose records.
+            <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+              Historical Records
+            </span>
+            <h1 className="font-display text-3xl font-extrabold text-stone-900 mt-0.5">
+              Glucose Logbook
+            </h1>
+            <p className="mt-1 text-sm text-stone-500">
+              Review, filter, edit, or remove your recorded blood glucose measurements.
             </p>
           </div>
 
@@ -106,162 +146,264 @@ export default function HistoryPage() {
               setEditingReading(null);
               setFormOpen(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-sm font-semibold text-white hover:bg-teal-700 transition-colors shadow-xs self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-900 text-sm font-semibold text-white hover:bg-teal-700 transition-colors shadow-soft self-start sm:self-auto"
           >
             <Plus className="h-4 w-4" />
-            Add Reading
+            Log Reading
           </button>
         </div>
 
-        {/* Date Range Filter Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-wrap items-end gap-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 mr-2 self-center">
-            <Filter className="h-4 w-4 text-teal-600" />
-            <span>Filter by Date</span>
+        {toast && (
+          <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-soft">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>{toast}</span>
+          </div>
+        )}
+
+        {/* Filter Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/80 p-5 shadow-soft space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Quick Date Range Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-400 mr-1">
+                Period:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                  setPage(1);
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  !fromDate && !toDate
+                    ? 'bg-stone-900 text-white'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
+                }`}
+              >
+                All Time
+              </button>
+              <button
+                type="button"
+                onClick={() => applyQuickRange(6)}
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200/70 transition-all"
+              >
+                Last 7 Days
+              </button>
+              <button
+                type="button"
+                onClick={() => applyQuickRange('MONTH')}
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-600 hover:bg-stone-200/70 transition-all"
+              >
+                This Month
+              </button>
+            </div>
+
+            {/* Custom Date Inputs */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex items-center gap-2 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200">
+                <label htmlFor="from-date" className="text-xs font-semibold text-stone-500">
+                  From
+                </label>
+                <input
+                  id="from-date"
+                  type="date"
+                  max={todayStr}
+                  value={fromDate}
+                  onChange={(e) => {
+                    setFromDate(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 bg-[#F7F6F2] px-3 py-1.5 rounded-full border border-stone-200">
+                <label htmlFor="to-date" className="text-xs font-semibold text-stone-500">
+                  To
+                </label>
+                <input
+                  id="to-date"
+                  type="date"
+                  max={todayStr}
+                  value={toDate}
+                  onChange={(e) => {
+                    setToDate(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-transparent text-xs font-bold text-stone-800 focus:outline-none"
+                />
+              </div>
+
+              {(fromDate || toDate || slotFilter !== 'ALL') && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="from-date" className="block text-xs font-medium text-slate-500">
-              From
-            </label>
-            <input
-              id="from-date"
-              type="date"
-              max={todayStr}
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-              }}
-              className="mt-1 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="to-date" className="block text-xs font-medium text-slate-500">
-              To
-            </label>
-            <input
-              id="to-date"
-              type="date"
-              max={todayStr}
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-              }}
-              className="mt-1 rounded-xl border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-
-          {(fromDate || toDate) && (
+          {/* Slot Filter Pill Strip */}
+          <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-400 mr-1">
+              Meal Slot:
+            </span>
             <button
               type="button"
-              onClick={handleResetFilters}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              onClick={() => setSlotFilter('ALL')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                slotFilter === 'ALL'
+                  ? 'bg-teal-600 text-white'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
+              }`}
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Clear filters
+              All Slots
             </button>
-          )}
+            {TIME_SLOTS.map((slot) => (
+              <button
+                key={slot.code}
+                type="button"
+                onClick={() => setSlotFilter(slot.code)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                  slotFilter === slot.code
+                    ? 'bg-teal-600 text-white'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70'
+                }`}
+              >
+                <SlotIcon slotCode={slot.code} className="h-3.5 w-3.5" />
+                {slot.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && (
-          <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+          <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
             {error}
           </div>
         )}
 
-        {/* Readings Table */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        {/* Logbook List Card */}
+        <div className="bg-white rounded-3xl border border-stone-200/80 shadow-soft overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-sm text-slate-500">
-              Loading reading history...
+            <div className="p-12 text-center text-sm font-medium text-stone-500">
+              Loading your glucose logbook...
             </div>
-          ) : readings.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-base font-semibold text-slate-800">No readings found</p>
-              <p className="mt-1 text-sm text-slate-500">
-                {fromDate || toDate
-                  ? 'No glucose readings match the selected date filter.'
-                  : 'You have not recorded any blood glucose measurements yet.'}
+          ) : displayedReadings.length === 0 ? (
+            <div className="p-14 text-center">
+              <div className="mx-auto h-12 w-12 rounded-2xl bg-stone-100 text-stone-500 flex items-center justify-center">
+                <Clock className="h-6 w-6" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-extrabold text-stone-900">
+                No readings match your filter
+              </h3>
+              <p className="mt-1 text-sm text-stone-500 max-w-sm mx-auto">
+                {fromDate || toDate || slotFilter !== 'ALL'
+                  ? 'Try adjusting your date range or meal-slot filter to view more entries.'
+                  : 'Start logging your daily blood glucose measurements to build your history.'}
               </p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Date
-                      </th>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Time Slot
-                      </th>
-                      <th className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Glucose Value
-                      </th>
-                      <th className="px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
-                    {readings.map((reading) => {
-                      const badge = getGlucoseBadgeStyle(reading.glucose_value);
-                      return (
-                        <tr key={reading.id} className="hover:bg-slate-50/70">
-                          <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-800">
-                            {formatDisplayDate(reading.reading_date)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-slate-700">
-                            {reading.time_slot_label}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="font-bold text-slate-900">
-                              {reading.glucose_value} mg/dL
+              <div className="divide-y divide-stone-100">
+                {displayedReadings.map((reading) => {
+                  const badge = getGlucoseBadgeStyle(reading.glucose_value);
+                  const slotMeta = getSlotMeta(reading.time_slot);
+                  const gaugePct = getGlucoseGaugePercent(reading.glucose_value);
+
+                  return (
+                    <div
+                      key={reading.id}
+                      className="p-5 sm:px-7 hover:bg-[#F7F6F2]/60 transition-colors flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                    >
+                      {/* Left: Slot Icon, Slot Label & Date */}
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${slotMeta.iconBg}`}
+                        >
+                          <SlotIcon slotCode={reading.time_slot} className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2.5">
+                            <span className="font-display text-base font-extrabold text-stone-900">
+                              {reading.time_slot_label}
                             </span>
                             <span
-                              className={`ml-2.5 text-xs font-semibold px-2 py-0.5 rounded-full border ${badge.bg}`}
+                              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
                             >
+                              <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
                               {badge.label}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingReading(reading);
-                                setFormOpen(true);
-                              }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeletingReading(reading)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </div>
+                          <p className="text-xs font-medium text-stone-500 mt-0.5">
+                            {formatDisplayDate(reading.reading_date, true)} · {slotMeta.timingHint}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right: Value, Mini Range Gauge, and Edit/Delete Actions */}
+                      <div className="flex items-center justify-between sm:justify-end gap-6">
+                        <div className="w-28 hidden md:block">
+                          <div className="relative h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
+                            <div
+                              className="absolute top-0 bottom-0 bg-emerald-200/60"
+                              style={{ left: '22%', width: '40%' }}
+                            />
+                            <div
+                              className={`h-full rounded-full ${badge.bar}`}
+                              style={{ width: `${gaugePct}%` }}
+                            />
+                          </div>
+                          <span className="block text-[10px] font-medium text-stone-400 mt-1 text-right">
+                            70–140 target
+                          </span>
+                        </div>
+
+                        <div className="text-right min-w-[90px]">
+                          <span className="font-display text-2xl font-extrabold text-stone-900">
+                            {reading.glucose_value}
+                          </span>
+                          <span className="ml-1 text-xs font-bold text-stone-400">mg/dL</span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingReading(reading);
+                              setFormOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200/80 transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingReading(reading)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Pagination Controls */}
-              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                <span>
-                  Showing page <span className="font-semibold">{pagination.page}</span> of{' '}
-                  <span className="font-semibold">{pagination.total_pages}</span> ({pagination.total}{' '}
-                  total records)
+              {/* Pagination Footer */}
+              <div className="px-7 py-4 bg-[#F7F6F2]/70 border-t border-stone-200/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600">
+                <span className="font-medium">
+                  Page <span className="font-bold text-stone-900">{pagination.page}</span> of{' '}
+                  <span className="font-bold text-stone-900">{pagination.total_pages}</span> ·{' '}
+                  <span className="font-bold text-stone-900">{pagination.total}</span> total readings
                 </span>
 
                 <div className="flex items-center gap-2">
@@ -269,7 +411,7 @@ export default function HistoryPage() {
                     type="button"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-stone-300 bg-white font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                     Previous
@@ -278,7 +420,7 @@ export default function HistoryPage() {
                     type="button"
                     disabled={page >= pagination.total_pages}
                     onClick={() => setPage((p) => p + 1)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-stone-300 bg-white font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition-colors"
                   >
                     Next
                     <ChevronRight className="h-3.5 w-3.5" />

@@ -6,7 +6,12 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+      },
       colors: {
+        canvas: '#F7F6F2',
         brand: {
           50: '#f0fdfa',
           100: '#ccfbf1',
@@ -19,6 +24,10 @@ export default {
           800: '#115e59',
           900: '#134e4a',
         },
+      },
+      boxShadow: {
+        soft: '0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 2px 6px -1px rgba(28, 25, 23, 0.03)',
+        card: '0 10px 30px -5px rgba(28, 25, 23, 0.06), 0 4px 10px -2px rgba(28, 25, 23, 0.03)',
       },
     },
   },

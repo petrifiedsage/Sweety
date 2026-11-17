@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
-  LineChart,
+  AreaChart,
+  Area,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ReferenceLine,
-  Legend,
 } from 'recharts';
 import { formatDisplayDate } from '../utils/constants';
 
@@ -50,69 +50,94 @@ export default function GlucoseTrendChart({ readings = [], title = 'Glucose Tren
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-soft">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-slate-900">{title}</h3>
-          <p className="text-xs text-slate-500">
-            Daily average, highest, and lowest blood glucose levels (mg/dL)
+          <h3 className="font-display text-lg font-extrabold text-stone-900">{title}</h3>
+          <p className="text-xs font-medium text-stone-500 mt-0.5">
+            Daily average, peak, and minimum blood glucose measurements (mg/dL)
           </p>
         </div>
-        <span className="text-xs text-slate-500">
-          Target reference range: 70 – 140 mg/dL
-        </span>
+
+        <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-stone-600">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-teal-600" />
+            Daily Average
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+            Daily High
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+            Daily Low
+          </span>
+        </div>
       </div>
 
       <div className="h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <AreaChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 5 }}>
+            <defs>
+              <linearGradient id="avgGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#0D9488" stopOpacity={0.22} />
+                <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" vertical={false} />
             <XAxis
               dataKey="displayDate"
-              tick={{ fontSize: 12, fill: '#64748b' }}
-              stroke="#cbd5e1"
+              tick={{ fontSize: 11, fill: '#78716C', fontWeight: 500 }}
+              stroke="#D6D3D1"
+              tickLine={false}
             />
             <YAxis
               domain={[40, 'auto']}
-              tick={{ fontSize: 12, fill: '#64748b' }}
-              stroke="#cbd5e1"
-              unit=" mg/dL"
+              tick={{ fontSize: 11, fill: '#78716C', fontWeight: 500 }}
+              stroke="#D6D3D1"
+              tickLine={false}
+              unit=" mg"
             />
             <Tooltip
               contentStyle={{
-                borderRadius: '12px',
-                borderColor: '#e2e8f0',
+                borderRadius: '16px',
+                borderColor: '#E7E5E4',
+                boxShadow: '0 10px 25px -5px rgba(28, 25, 23, 0.08)',
                 fontSize: '12px',
+                fontWeight: 600,
               }}
             />
-            <Legend wrapperStyle={{ fontSize: '12px' }} />
-            <ReferenceLine y={140} stroke="#10b981" strokeDasharray="4 4" />
-            <ReferenceLine y={70} stroke="#f59e0b" strokeDasharray="4 4" />
+            <ReferenceLine y={140} stroke="#10B981" strokeDasharray="4 4" />
+            <ReferenceLine y={70} stroke="#F59E0B" strokeDasharray="4 4" />
+            <Area
+              type="monotone"
+              dataKey="average"
+              name="Daily Average (mg/dL)"
+              stroke="#0D9488"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#avgGradient)"
+              dot={{ r: 4, fill: '#0D9488', strokeWidth: 2, stroke: '#fff' }}
+            />
             <Line
               type="monotone"
               dataKey="highest"
-              name="Daily High"
-              stroke="#f43f5e"
+              name="Daily High (mg/dL)"
+              stroke="#F43F5E"
               strokeWidth={2}
-              dot={{ r: 3 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="average"
-              name="Daily Average"
-              stroke="#0d9488"
-              strokeWidth={2.5}
-              dot={{ r: 4 }}
+              strokeDasharray="4 2"
+              dot={{ r: 3, fill: '#F43F5E' }}
             />
             <Line
               type="monotone"
               dataKey="lowest"
-              name="Daily Low"
-              stroke="#f59e0b"
+              name="Daily Low (mg/dL)"
+              stroke="#F59E0B"
               strokeWidth={2}
-              dot={{ r: 3 }}
+              strokeDasharray="4 2"
+              dot={{ r: 3, fill: '#F59E0B' }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
