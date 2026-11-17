@@ -7,11 +7,52 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: #F7F6F2;
     color: #1C1917;
+    transition: background-color 400ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html.dark body {
+    background-color: #0C0A09;
+    color: #F5F5F4;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
     letter-spacing: -0.02em;
+  }
+}
+
+/* Smooth animated transition across all surfaces when switching between Light and Dark mode */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+  transition-duration: 420ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Circular reveal animation for View Transitions API when toggling theme */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: themeCircleReveal 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes themeCircleReveal {
+  from {
+    clip-path: circle(0px at var(--theme-Origin-X, 50%) var(--theme-Origin-Y, 50%));
+  }
+  to {
+    clip-path: circle(var(--theme-End-Radius, 150vmax) at var(--theme-Origin-X, 50%) var(--theme-Origin-Y, 50%));
   }
 }
 
@@ -30,6 +71,59 @@
   animation: fadeIn 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Automatic Dark Mode surface mappings so every card, pill, text, and border looks cohesive */
+html.dark .bg-\[\#F7F6F2\],
+html.dark .bg-\[\#F7F6F2\]\/80,
+html.dark .bg-\[\#F7F6F2\]\/70,
+html.dark .bg-\[\#F7F6F2\]\/60 {
+  background-color: #0C0A09 !important;
+}
+
+html.dark .bg-white {
+  background-color: #1C1917 !important;
+}
+
+html.dark .bg-white\/90 {
+  background-color: rgba(28, 25, 23, 0.9) !important;
+}
+
+html.dark .bg-white\/60 {
+  background-color: rgba(28, 25, 23, 0.65) !important;
+}
+
+html.dark .bg-stone-100 {
+  background-color: #292524 !important;
+}
+
+html.dark .border-stone-100,
+html.dark .divide-stone-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #292524 !important;
+}
+
+html.dark .border-stone-200,
+html.dark .border-stone-200\/90,
+html.dark .border-stone-200\/80,
+html.dark .border-stone-200\/70,
+html.dark .border-stone-200\/60,
+html.dark .border-stone-300,
+html.dark .border-stone-300\/80 {
+  border-color: #292524 !important;
+}
+
+html.dark .text-stone-900 {
+  color: #FAFAF9 !important;
+}
+
+html.dark .text-stone-800,
+html.dark .text-stone-700 {
+  color: #E7E5E4 !important;
+}
+
+html.dark .text-stone-600,
+html.dark .text-stone-500 {
+  color: #A8A29E !important;
+}
+
 /* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -42,6 +136,6 @@
   background: #d6d3d1;
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
+html.dark ::-webkit-scrollbar-thumb {
+  background: #44403c;
 }

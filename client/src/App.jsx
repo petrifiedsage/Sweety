@@ -8,6 +8,7 @@ import {
   useOutlet,
 } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthLayout from './components/AuthLayout';
 import Navbar from './components/Navbar';
@@ -61,7 +62,7 @@ function AuthenticatedLayout() {
   return (
     <AppTransitionContext.Provider value={{ triggerLogoutExit }}>
       <div
-        className={`min-h-screen bg-[#F7F6F2] flex flex-col animate-fade-in transition-all duration-220 ease-out ${
+        className={`min-h-screen bg-[#F7F6F2] dark:bg-stone-950 flex flex-col animate-fade-in transition-all duration-220 ease-out ${
           isDashboard ? 'lg:h-screen lg:overflow-hidden' : 'pb-10'
         } ${layoutExiting ? 'opacity-0 scale-[0.985]' : 'opacity-100 scale-100'}`}
       >
@@ -82,27 +83,29 @@ function AuthenticatedLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
-          <Route
-            element={
-              <ProtectedRoute>
-                <AuthenticatedLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+            </Route>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AuthenticatedLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

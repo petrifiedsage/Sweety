@@ -79,28 +79,34 @@ export default function GlucoseTrendChart({ readings = [], title = 'Glucose Tren
                 <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E7E5E4" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#78716C" strokeOpacity={0.2} vertical={false} />
             <XAxis
               dataKey="displayDate"
-              tick={{ fontSize: 11, fill: '#78716C', fontWeight: 500 }}
-              stroke="#D6D3D1"
+              tick={{ fontSize: 11, fill: '#A8A29E', fontWeight: 500 }}
+              stroke="#78716C"
+              strokeOpacity={0.3}
               tickLine={false}
             />
             <YAxis
               domain={[40, 'auto']}
-              tick={{ fontSize: 11, fill: '#78716C', fontWeight: 500 }}
-              stroke="#D6D3D1"
+              tick={{ fontSize: 11, fill: '#A8A29E', fontWeight: 500 }}
+              stroke="#78716C"
+              strokeOpacity={0.3}
               tickLine={false}
               unit=" mg"
             />
             <Tooltip
               contentStyle={{
                 borderRadius: '16px',
-                borderColor: '#E7E5E4',
-                boxShadow: '0 10px 25px -5px rgba(28, 25, 23, 0.08)',
+                backgroundColor: 'rgba(28, 25, 23, 0.92)',
+                borderColor: '#44403C',
+                color: '#FAFAF9',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
                 fontSize: '12px',
                 fontWeight: 600,
               }}
+              itemStyle={{ color: '#FAFAF9' }}
+              labelStyle={{ color: '#A8A29E', marginBottom: '4px' }}
             />
             <ReferenceLine y={140} stroke="#10B981" strokeDasharray="4 4" />
             <ReferenceLine y={70} stroke="#F59E0B" strokeDasharray="4 4" />

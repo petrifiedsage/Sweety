@@ -8,6 +8,7 @@ import {
   IoLogOutOutline,
 } from 'react-icons/io5';
 import GradientMenu from '@/components/ui/gradient-menu';
+import ThemeToggleButton from './ThemeToggleButton';
 import { useAuth } from '../context/AuthContext';
 import { useAppTransition } from '../App';
 
@@ -77,17 +78,17 @@ export default function Navbar() {
         {/* Floating Pill-Shaped Navbar Container */}
         <nav
           aria-label="Main navigation"
-          className="w-full flex items-center justify-between gap-3 bg-white/90 backdrop-blur-md border border-stone-200/90 shadow-card rounded-full px-3.5 py-2"
+          className="w-full flex items-center justify-between gap-3 bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border border-stone-200/90 dark:border-stone-800 shadow-card rounded-full px-3.5 py-2"
         >
           {/* Left: Brand Pill */}
           <NavLink
             to="/dashboard"
-            className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full hover:bg-stone-100/80 transition-colors group shrink-0"
+            className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full hover:bg-stone-100/80 dark:hover:bg-stone-800/80 transition-colors group shrink-0"
           >
             <div className="h-9 w-9 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
               <HeartPulse className="h-4 w-4" />
             </div>
-            <span className="font-display text-lg font-extrabold tracking-tight text-stone-900">
+            <span className="font-display text-lg font-extrabold tracking-tight text-stone-900 dark:text-stone-100">
               Sweety
             </span>
           </NavLink>
@@ -95,18 +96,20 @@ export default function Navbar() {
           {/* Center: Expanding Gradient Pill Menu */}
           <GradientMenu items={navItems} />
 
-          {/* Right: User Badge & Expanding Gradient Sign-Out Pill */}
+          {/* Right: User Badge, Animated Theme Toggle & Expanding Gradient Sign-Out Pill */}
           <div className="flex items-center gap-2 shrink-0">
             {user && (
-              <div className="hidden md:flex items-center gap-2 bg-[#F7F6F2] pl-1.5 pr-3.5 py-1.5 rounded-full border border-stone-200/80">
-                <div className="h-6 w-6 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold flex items-center justify-center">
+              <div className="hidden md:flex items-center gap-2 bg-[#F7F6F2] dark:bg-stone-800 pl-1.5 pr-3.5 py-1.5 rounded-full border border-stone-200/80 dark:border-stone-700">
+                <div className="h-6 w-6 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 text-[11px] font-bold flex items-center justify-center">
                   {initials}
                 </div>
-                <span className="text-xs font-semibold text-stone-800 max-w-[120px] truncate">
+                <span className="text-xs font-semibold text-stone-800 dark:text-stone-200 max-w-[120px] truncate">
                   {user.name}
                 </span>
               </div>
             )}
+
+            <ThemeToggleButton />
 
             <GradientMenu items={logoutItems} />
           </div>

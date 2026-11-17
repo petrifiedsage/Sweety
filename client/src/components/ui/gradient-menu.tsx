@@ -50,7 +50,7 @@ export default function GradientMenu({
             className={`relative h-[42px] rounded-full flex items-center justify-center overflow-visible transition-[width,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group cursor-pointer focus:outline-none ${
               active
                 ? 'w-[124px] bg-transparent border border-transparent shadow-none'
-                : 'w-[42px] bg-[#F7F6F2] border border-stone-200/80 shadow-xs hover:w-[124px] hover:shadow-none hover:border-transparent'
+                : 'w-[42px] bg-[#F7F6F2] dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700 shadow-xs hover:w-[124px] hover:shadow-none hover:border-transparent'
             }`}
           >
             {/* Gradient background on hover or active */}
@@ -75,7 +75,7 @@ export default function GradientMenu({
                   : 'scale-100 opacity-100 delay-100 group-hover:scale-0 group-hover:opacity-0 group-hover:delay-0'
               }`}
             >
-              <span className="text-lg text-stone-600 flex items-center justify-center">
+              <span className="text-lg text-stone-600 dark:text-stone-300 flex items-center justify-center">
                 {icon}
               </span>
             </span>

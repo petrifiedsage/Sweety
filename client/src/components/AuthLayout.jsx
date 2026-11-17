@@ -8,6 +8,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
+import ThemeToggleButton from './ThemeToggleButton';
 
 const AuthTransitionContext = createContext({
   switchAuthPage: () => {},
@@ -58,13 +59,18 @@ export default function AuthLayout() {
   return (
     <AuthTransitionContext.Provider value={{ switchAuthPage, triggerLoginExit }}>
       <div
-        className={`min-h-screen bg-[#F7F6F2] flex items-center justify-center p-4 sm:p-6 transition-all duration-250 ease-out animate-fade-in ${
+        className={`relative min-h-screen bg-[#F7F6F2] dark:bg-stone-950 flex items-center justify-center p-4 sm:p-6 transition-all duration-250 ease-out animate-fade-in ${
           pageExiting ? 'opacity-0 scale-[0.985]' : 'opacity-100 scale-100'
         }`}
       >
+        {/* Top-Right Floating Theme Toggle on Auth Pages */}
+        <div className="fixed top-5 right-5 z-40">
+          <ThemeToggleButton />
+        </div>
+
         <div className="flex flex-col lg:flex-row items-center justify-center gap-6 w-full max-w-5xl">
           {/* Persistent Left Wellness Showcase Card (Shared across /login and /register) */}
-          <div className="hidden lg:flex w-full max-w-[460px] h-[620px] rounded-[32px] bg-gradient-to-br from-stone-900 via-stone-900 to-teal-950 text-white p-9 flex-col justify-between shadow-card">
+          <div className="hidden lg:flex w-full max-w-[460px] h-[620px] rounded-[32px] bg-gradient-to-br from-stone-900 via-stone-900 to-teal-950 text-white p-9 flex-col justify-between shadow-card border border-stone-800/60">
             <div>
               <div className="inline-flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-teal-500 flex items-center justify-center text-white shadow-sm">
@@ -137,7 +143,7 @@ export default function AuthLayout() {
 
           {/* Right Form Card — Fades out and in smoothly when switching between /login and /register */}
           <div
-            className={`w-full max-w-[460px] h-[620px] bg-white rounded-[32px] border border-stone-200/90 shadow-card p-8 sm:p-10 flex flex-col justify-between transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`w-full max-w-[460px] h-[620px] bg-white dark:bg-stone-900 rounded-[32px] border border-stone-200/90 dark:border-stone-800 shadow-card p-8 sm:p-10 flex flex-col justify-between transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
               rightCardPhase === 'fading-out'
                 ? 'opacity-0 translate-y-1.5 scale-[0.985]'
                 : 'opacity-100 translate-y-0 scale-100'

@@ -135,7 +135,7 @@ export default function StatCards({ statistics, maxDaily = null }) {
               cy="28"
               r={radius}
               fill="none"
-              stroke="#F5F5F4"
+              className="stroke-stone-100 dark:stroke-stone-800"
               strokeWidth="5"
             />
             <circle
