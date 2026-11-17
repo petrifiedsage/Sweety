@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
 import DateNavigator from '../components/DateNavigator';
 import SlotIcon from '../components/SlotIcon';
@@ -148,9 +147,7 @@ export default function DashboardPage() {
   const firstName = user?.name ? user.name.split(' ')[0] : 'there';
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-[#F7F6F2] flex flex-col">
-      <Navbar />
-
+    <>
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex flex-col justify-between gap-4">
         {/* Top Greeting & Date Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -361,6 +358,6 @@ export default function DashboardPage() {
         onConfirm={handleConfirmDelete}
         reading={deletingReading}
       />
-    </div>
+    </>
   );
 }

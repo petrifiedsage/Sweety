@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FileBarChart, AlertCircle, CalendarRange } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import StatCards from '../components/StatCards';
 import DateNavigator from '../components/DateNavigator';
 import SlotIcon from '../components/SlotIcon';
@@ -108,9 +107,7 @@ export default function ReportsPage() {
   }, [readings]);
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] pb-10">
-      <Navbar />
-
+    <>
       <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-4">
         {/* Top Header & Date Navigator — Consistent with Dashboard & History */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -373,6 +370,6 @@ export default function ReportsPage() {
           )
         )}
       </main>
-    </div>
+    </>
   );
 }

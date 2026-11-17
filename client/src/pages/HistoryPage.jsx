@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   SlidersHorizontal,
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import SlotIcon from '../components/SlotIcon';
 import ReadingFormModal from '../components/ReadingFormModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
@@ -131,9 +130,7 @@ export default function HistoryPage() {
   const hasActiveFilters = Boolean(fromDate || toDate || slotFilter !== 'ALL');
 
   return (
-    <div className="min-h-screen bg-[#F7F6F2] pb-10">
-      <Navbar />
-
+    <>
       <main className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 space-y-4">
         {/* Page Header — Consistent with Dashboard */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -434,6 +431,6 @@ export default function HistoryPage() {
         onConfirm={handleConfirmDelete}
         reading={deletingReading}
       />
-    </div>
+    </>
   );
 }
