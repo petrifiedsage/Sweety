@@ -5,6 +5,7 @@ const mockPrisma = createInMemoryPrisma();
 jest.mock('../src/config/db', () => mockPrisma);
 
 const app = require('../src/app');
+const cacheService = require('../src/services/cacheService');
 
 describe('Reporting Module (/api/reports)', () => {
   let token;
@@ -12,6 +13,7 @@ describe('Reporting Module (/api/reports)', () => {
 
   beforeEach(async () => {
     mockPrisma.$Reset();
+    cacheService.clearAllCache();
 
     const res = await request(app).post('/api/auth/register').send({
       name: 'Report User',

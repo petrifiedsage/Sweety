@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const AppError = require('../utils/AppError');
+const cacheService = require('./cacheService');
 const {
   getTimeSlotInfo,
   getDuplicateSlotMessage,
@@ -78,6 +79,11 @@ async function createReading(userId, payload) {
       glucose_value,
     },
   });
+
+  // Invalidate cached reports for this user and trigger background cache warmup
+  await cacheService.invalidateUserReports(userId);
+  const { enqueueReportWarmup } = require('../jobs/jobQueue');
+  await enqueueReportWarmup(userId, reading_date);
 
   return formatReading(created);
 }
@@ -205,6 +211,11 @@ async function updateReading(userId, readingId, payload) {
     },
   });
 
+  // Invalidate cached reports for this user and trigger background cache warmup
+  await cacheService.invalidateUserReports(userId);
+  const { enqueueReportWarmup } = require('../jobs/jobQueue');
+  await enqueueReportWarmup(userId, reading_date);
+
   return formatReading(updated);
 }
 
@@ -227,6 +238,11 @@ async function deleteReading(userId, readingId) {
   await prisma.reading.delete({
     where: { id: readingId },
   });
+
+  // Invalidate cached reports for this user and trigger background cache warmup
+  await cacheService.invalidateUserReports(userId);
+  const { enqueueReportWarmup } = require('../jobs/jobQueue');
+  await enqueueReportWarmup(userId);
 
   return { id: readingId };
 }

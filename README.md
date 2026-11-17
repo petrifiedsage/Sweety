@@ -7,15 +7,15 @@ Sweety is a full-stack web application for recording and tracking daily blood gl
 ## Tech Stack
 
 - **Frontend:** React, Vite, Tailwind CSS, React Router, Axios, Recharts
-- **Backend:** Node.js, Express, Prisma ORM, JWT, bcryptjs
-- **Database:** PostgreSQL
+- **Backend:** Node.js, Express, Prisma ORM, JWT, bcryptjs, Redis (`ioredis`), BullMQ
+- **Database & Cache:** PostgreSQL, Redis 7
 - **Testing:** Jest & Supertest (Backend), Vitest & React Testing Library (Frontend)
 
 ---
 
 ## Quick Start (Docker Compose)
 
-Run the entire stack (PostgreSQL, Backend API, Demo Seed, and Frontend) with a single command:
+Run the entire app with a single command:
 
 ```bash
 docker compose up --build
@@ -24,6 +24,10 @@ docker compose up --build
 - **Frontend:** `http://localhost:5173`
 - **Backend API:** `http://localhost:5000/api`
 
+To stop the app:
+```bash
+docker compose down
+```
 ---
 
 ## Manual Local Setup
@@ -102,4 +106,5 @@ npm test --prefix client
   4. Maximum 4 readings per day (`"You can add only 4 readings per day."`).
   5. Future dates are rejected (`"Date cannot be in the future."`).
   6. Strict user ownership isolation.
-- **Reports:** Daily, This Month (Month-to-Date), and Last Month (Previous Month) statistics (highest, lowest, average rounded to 1 decimal place, total count, healthy range breakdown, and glucose trend chart).
+- **Reports & Caching:** Daily, This Month (Month-to-Date), and Last Month (Previous Month) statistics (highest, lowest, average rounded to 1 decimal place, total count, healthy range breakdown, and glucose trend chart) backed by **Redis report caching** with automatic per-user invalidation on reading changes.
+- **Background Jobs (BullMQ):** Automated daily unlogged-slot reminder evaluation (`/api/jobs/reminders`) and asynchronous report cache pre-warming.

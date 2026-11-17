@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const AppError = require('../utils/AppError');
+const cacheService = require('./cacheService');
 const {
   getTodayDateString,
   isValidDateString,
@@ -80,10 +81,16 @@ async function fetchReadingsInRange(userId, fromStr, toStr, sortAscending = true
 
 async function getDailyReport(userId, dateQuery) {
   const selectedDate = resolveSelectedDate(dateQuery);
+
+  const cached = await cacheService.getCachedReport(userId, 'daily', selectedDate);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
+
   const readings = await fetchReadingsInRange(userId, selectedDate, selectedDate, true);
   const statistics = calculateStatistics(readings);
 
-  return {
+  const report = {
     report_type: 'DAILY',
     selected_date: selectedDate,
     date_range: {
@@ -93,15 +100,24 @@ async function getDailyReport(userId, dateQuery) {
     statistics,
     readings,
   };
+
+  await cacheService.setCachedReport(userId, 'daily', selectedDate, report);
+  return { ...report, cached: false };
 }
 
 async function getMonthToDateReport(userId, dateQuery) {
   const selectedDate = resolveSelectedDate(dateQuery);
+
+  const cached = await cacheService.getCachedReport(userId, 'mtd', selectedDate);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
+
   const fromDate = getFirstDayOfMonth(selectedDate);
   const readings = await fetchReadingsInRange(userId, fromDate, selectedDate, true);
   const statistics = calculateStatistics(readings);
 
-  return {
+  const report = {
     report_type: 'MONTH_TO_DATE',
     selected_date: selectedDate,
     date_range: {
@@ -111,15 +127,24 @@ async function getMonthToDateReport(userId, dateQuery) {
     statistics,
     readings,
   };
+
+  await cacheService.setCachedReport(userId, 'mtd', selectedDate, report);
+  return { ...report, cached: false };
 }
 
 async function getPreviousMonthlyReport(userId, dateQuery) {
   const selectedDate = resolveSelectedDate(dateQuery);
+
+  const cached = await cacheService.getCachedReport(userId, 'monthly', selectedDate);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
+
   const { from, to } = getPreviousMonthRange(selectedDate);
   const readings = await fetchReadingsInRange(userId, from, to, true);
   const statistics = calculateStatistics(readings);
 
-  return {
+  const report = {
     report_type: 'PREVIOUS_MONTH',
     selected_date: selectedDate,
     date_range: {
@@ -129,6 +154,9 @@ async function getPreviousMonthlyReport(userId, dateQuery) {
     statistics,
     readings,
   };
+
+  await cacheService.setCachedReport(userId, 'monthly', selectedDate, report);
+  return { ...report, cached: false };
 }
 
 module.exports = {
