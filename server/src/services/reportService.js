@@ -1,5 +1,5 @@
-const prisma = require('../config/db');
 const AppError = require('../utils/AppError');
+const prisma = require('../config/db');
 const cacheService = require('./cacheService');
 const {
   getTodayDateString,
@@ -72,8 +72,8 @@ async function fetchReadingsInRange(userId, fromStr, toStr, sortAscending = true
           ? -1
           : 1
         : a.reading_date < b.reading_date
-        ? 1
-        : -1;
+          ? 1
+          : -1;
     }
     return a.slot_order - b.slot_order;
   });

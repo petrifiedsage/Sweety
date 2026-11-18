@@ -1,7 +1,10 @@
 const { Queue, Worker } = require('bullmq');
 const env = require('../config/env');
 const { isRedisConnected } = require('../config/redis');
-const { evaluateUserDailyReminder } = require('./reminderJob');
+const {
+  evaluateUserDailyReminder,
+  evaluateAllUsersDailyReminders,
+} = require('./reminderJob');
 const reportService = require('../services/reportService');
 
 let reminderQueue = null;
@@ -40,6 +43,9 @@ async function initializeBackgroundJobs() {
   reminderWorker = new Worker(
     'reading-reminders',
     async (job) => {
+      if (job.name === 'check-all-users-daily-reminders') {
+        return evaluateAllUsersDailyReminders();
+      }
       const { userId, date } = job.data || {};
       if (userId) {
         return evaluateUserDailyReminder(userId, date);
@@ -63,6 +69,16 @@ async function initializeBackgroundJobs() {
       return { warmed: false };
     },
     { connection }
+  );
+
+  // Schedule automated daily reminders at meal check-in hours (9 AM, 1 PM, 6 PM, 9 PM)
+  await reminderQueue.upsertJobScheduler(
+    'daily-meal-slot-reminders',
+    { pattern: '0 9,13,18,21 * * *' },
+    {
+      name: 'check-all-users-daily-reminders',
+      data: {},
+    }
   );
 }
 

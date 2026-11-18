@@ -53,6 +53,24 @@ async function evaluateUserDailyReminder(userId, dateQuery = null) {
   return payload;
 }
 
+async function evaluateAllUsersDailyReminders(dateQuery = null) {
+  const users = await prisma.user.findMany({
+    select: { id: true },
+  });
+
+  const results = [];
+  for (const user of users) {
+    const reminder = await evaluateUserDailyReminder(user.id, dateQuery);
+    results.push(reminder);
+  }
+
+  return {
+    evaluated_users: results.length,
+    incomplete_users: results.filter((r) => !r.is_complete).length,
+  };
+}
+
 module.exports = {
   evaluateUserDailyReminder,
+  evaluateAllUsersDailyReminders,
 };

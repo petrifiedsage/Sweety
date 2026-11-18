@@ -5,6 +5,8 @@ import {
   Trash2,
   CheckCircle2,
   AlertCircle,
+  Bell,
+  X,
 } from 'lucide-react';
 import StatCards from '../components/StatCards';
 import DateNavigator from '../components/DateNavigator';
@@ -18,6 +20,7 @@ import {
   updateReading,
   deleteReading,
 } from '../api/readingsApi';
+import { getDailyReminder } from '../api/jobsApi';
 import {
   TIME_SLOTS,
   getTodayDateString,
@@ -61,6 +64,8 @@ export default function DashboardPage() {
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [readings, setReadings] = useState([]);
+  const [reminder, setReminder] = useState(null);
+  const [reminderDismissed, setReminderDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
@@ -74,8 +79,15 @@ export default function DashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const data = await getReadings({ date: selectedDate });
-      setReadings(data.readings || []);
+      const [readingsData, reminderData] = await Promise.all([
+        getReadings({ date: selectedDate }),
+        selectedDate === todayStr
+          ? getDailyReminder(selectedDate).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+      setReadings(readingsData.readings || []);
+      setReminder(reminderData?.reminder || null);
+      setReminderDismissed(false);
     } catch (err) {
       setError(
         err.response?.data?.error || 'Failed to load readings for the selected date.'
@@ -83,7 +95,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, [selectedDate, todayStr]);
 
   useEffect(() => {
     loadDailyReadings();
@@ -179,6 +191,41 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* BullMQ Unlogged Slot Reminder Banner (shown for today when slots are missing) */}
+        {!loading &&
+          selectedDate === todayStr &&
+          reminder &&
+          !reminder.is_complete &&
+          !reminderDismissed &&
+          reminder.missing_slots?.length > 0 && (
+            <div
+              role="status"
+              className="flex items-center justify-between gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/90 dark:border-amber-800/70 px-4 py-2.5 text-xs font-semibold text-amber-900 dark:text-amber-200 shadow-soft animate-fade-in"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="truncate">{reminder.message}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleOpenAdd(reminder.missing_slots[0].code)}
+                  className="px-3 py-1 rounded-full bg-amber-600 text-white hover:bg-amber-700 text-[11px] font-bold transition-colors"
+                >
+                  Log {reminder.missing_slots[0].label}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReminderDismissed(true)}
+                  aria-label="Dismiss reminder"
+                  className="p-1 rounded-full text-amber-700 dark:text-amber-300 hover:bg-amber-200/60 dark:hover:bg-amber-900/60 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
         {/* Toast / Error Alerts */}
         {(toast || error) && (
           <div>
@@ -238,11 +285,10 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={slot.code}
-                    className={`rounded-3xl px-6 py-4 transition-all flex flex-col justify-between ${
-                      record
-                        ? 'bg-white border border-stone-200/90 shadow-soft hover:shadow-card'
-                        : 'bg-white/60 border-2 border-dashed border-stone-300/80 hover:border-teal-500/60 hover:bg-white'
-                    }`}
+                    className={`rounded-3xl px-6 py-4 transition-all flex flex-col justify-between ${record
+                      ? 'bg-white border border-stone-200/90 shadow-soft hover:shadow-card'
+                      : 'bg-white/60 border-2 border-dashed border-stone-300/80 hover:border-teal-500/60 hover:bg-white'
+                      }`}
                   >
                     {/* Top Row: Slot Icon, Title & Status Badge */}
                     <div className="flex items-start justify-between gap-3">
