@@ -1,7 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useLocation, useNavigate, useOutlet } from 'react-router-dom';
 import {
-  HeartPulse,
   CheckCircle2,
   Sunrise,
   Coffee,
@@ -9,6 +8,7 @@ import {
   Moon,
 } from 'lucide-react';
 import ThemeToggleButton from './ThemeToggleButton';
+import SweetyIcon from './SweetyIcon';
 
 const AuthTransitionContext = createContext({
   switchAuthPage: () => {},
@@ -73,9 +73,7 @@ export default function AuthLayout() {
           <div className="hidden lg:flex w-full max-w-[460px] h-[620px] rounded-[32px] bg-gradient-to-br from-stone-900 via-stone-900 to-teal-950 text-white p-9 flex-col justify-between shadow-card border border-stone-800/60">
             <div>
               <div className="inline-flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-teal-500 flex items-center justify-center text-white shadow-sm">
-                  <HeartPulse className="h-5 w-5" />
-                </div>
+                <SweetyIcon className="h-10 w-10 shrink-0 shadow-sm rounded-xl" />
                 <span className="font-display text-xl font-extrabold tracking-tight">
                   Sweety
                 </span>

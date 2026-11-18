@@ -8,7 +8,9 @@ import {
   useOutlet,
 } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthLayout from './components/AuthLayout';
 import Navbar from './components/Navbar';
@@ -81,9 +83,25 @@ function AuthenticatedLayout() {
   );
 }
 
+function ThemedToastContainer() {
+  const { isDark } = useTheme();
+  return (
+    <ToastContainer
+      position="bottom-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop
+      closeOnClick
+      pauseOnHover
+      theme={isDark ? 'dark' : 'light'}
+    />
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
+      <ThemedToastContainer />
       <AuthProvider>
         <BrowserRouter>
           <Routes>

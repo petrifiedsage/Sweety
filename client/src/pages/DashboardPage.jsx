@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import {
   Plus,
   Pencil,
   Trash2,
-  CheckCircle2,
   AlertCircle,
   Bell,
-  X,
 } from 'lucide-react';
 import StatCards from '../components/StatCards';
 import DateNavigator from '../components/DateNavigator';
@@ -64,16 +63,28 @@ export default function DashboardPage() {
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [readings, setReadings] = useState([]);
-  const [reminder, setReminder] = useState(null);
-  const [reminderDismissed, setReminderDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingReading, setEditingReading] = useState(null);
   const [defaultSlot, setDefaultSlot] = useState('MORNING_FASTING');
   const [deletingReading, setDeletingReading] = useState(null);
+
+  const handleOpenAdd = useCallback(
+    (slotCode = null) => {
+      setEditingReading(null);
+      if (slotCode) {
+        setDefaultSlot(slotCode);
+      } else {
+        const usedSlots = new Set(readings.map((r) => r.time_slot));
+        const firstAvailable = TIME_SLOTS.find((s) => !usedSlots.has(s.code));
+        setDefaultSlot(firstAvailable ? firstAvailable.code : 'MORNING_FASTING');
+      }
+      setFormOpen(true);
+    },
+    [readings]
+  );
 
   const loadDailyReadings = useCallback(async () => {
     setLoading(true);
@@ -85,9 +96,42 @@ export default function DashboardPage() {
           ? getDailyReminder(selectedDate).catch(() => null)
           : Promise.resolve(null),
       ]);
+
       setReadings(readingsData.readings || []);
-      setReminder(reminderData?.reminder || null);
-      setReminderDismissed(false);
+
+      const reminder = reminderData?.reminder;
+      if (
+        selectedDate === todayStr &&
+        reminder &&
+        !reminder.is_complete &&
+        reminder.missing_slots?.length > 0
+      ) {
+        const firstMissing = reminder.missing_slots[0];
+        toast.warn(
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold leading-snug">{reminder.message}</span>
+            <button
+              type="button"
+              onClick={() => {
+                toast.dismiss('daily-slot-reminder');
+                setEditingReading(null);
+                setDefaultSlot(firstMissing.code);
+                setFormOpen(true);
+              }}
+              className="self-start px-2.5 py-1 rounded-full bg-amber-600 text-white hover:bg-amber-700 text-[11px] font-bold transition-colors"
+            >
+              Log {firstMissing.label}
+            </button>
+          </div>,
+          {
+            toastId: 'daily-slot-reminder',
+            icon: <Bell className="h-4 w-4 text-amber-500" />,
+            autoClose: 7000,
+          }
+        );
+      } else {
+        toast.dismiss('daily-slot-reminder');
+      }
     } catch (err) {
       setError(
         err.response?.data?.error || 'Failed to load readings for the selected date.'
@@ -101,25 +145,6 @@ export default function DashboardPage() {
     loadDailyReadings();
   }, [loadDailyReadings]);
 
-  function showSuccessToast(message) {
-    setToast(message);
-    setTimeout(() => {
-      setToast('');
-    }, 3500);
-  }
-
-  function handleOpenAdd(slotCode = null) {
-    setEditingReading(null);
-    if (slotCode) {
-      setDefaultSlot(slotCode);
-    } else {
-      const usedSlots = new Set(readings.map((r) => r.time_slot));
-      const firstAvailable = TIME_SLOTS.find((s) => !usedSlots.has(s.code));
-      setDefaultSlot(firstAvailable ? firstAvailable.code : 'MORNING_FASTING');
-    }
-    setFormOpen(true);
-  }
-
   function handleOpenEdit(reading) {
     setEditingReading(reading);
     setFormOpen(true);
@@ -128,10 +153,10 @@ export default function DashboardPage() {
   async function handleSaveReading(payload) {
     if (editingReading) {
       await updateReading(editingReading.id, payload);
-      showSuccessToast('Reading updated.');
+      toast.success('Reading updated.');
     } else {
       await createReading(payload);
-      showSuccessToast('Reading logged.');
+      toast.success('Reading logged.');
     }
     if (payload.reading_date !== selectedDate) {
       setSelectedDate(payload.reading_date);
@@ -142,7 +167,7 @@ export default function DashboardPage() {
 
   async function handleConfirmDelete(readingId) {
     await deleteReading(readingId);
-    showSuccessToast('Reading removed.');
+    toast.success('Reading removed.');
     await loadDailyReadings();
   }
 
@@ -191,56 +216,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* BullMQ Unlogged Slot Reminder Banner (shown for today when slots are missing) */}
-        {!loading &&
-          selectedDate === todayStr &&
-          reminder &&
-          !reminder.is_complete &&
-          !reminderDismissed &&
-          reminder.missing_slots?.length > 0 && (
-            <div
-              role="status"
-              className="flex items-center justify-between gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/90 dark:border-amber-800/70 px-4 py-2.5 text-xs font-semibold text-amber-900 dark:text-amber-200 shadow-soft animate-fade-in"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Bell className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                <span className="truncate">{reminder.message}</span>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleOpenAdd(reminder.missing_slots[0].code)}
-                  className="px-3 py-1 rounded-full bg-amber-600 text-white hover:bg-amber-700 text-[11px] font-bold transition-colors"
-                >
-                  Log {reminder.missing_slots[0].label}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReminderDismissed(true)}
-                  aria-label="Dismiss reminder"
-                  className="p-1 rounded-full text-amber-700 dark:text-amber-300 hover:bg-amber-200/60 dark:hover:bg-amber-900/60 transition-colors"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-        {/* Toast / Error Alerts */}
-        {(toast || error) && (
-          <div>
-            {toast && (
-              <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-200/90 px-4 py-2 text-xs font-semibold text-emerald-800">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>{toast}</span>
-              </div>
-            )}
-            {error && (
-              <div className="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200/90 px-4 py-2 text-xs font-medium text-rose-700">
-                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
+        {/* Error Alert */}
+        {error && (
+          <div className="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200/90 px-4 py-2 text-xs font-medium text-rose-700">
+            <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -285,10 +265,11 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={slot.code}
-                    className={`rounded-3xl px-6 py-4 transition-all flex flex-col justify-between ${record
-                      ? 'bg-white border border-stone-200/90 shadow-soft hover:shadow-card'
-                      : 'bg-white/60 border-2 border-dashed border-stone-300/80 hover:border-teal-500/60 hover:bg-white'
-                      }`}
+                    className={`rounded-3xl px-6 py-4 transition-all flex flex-col justify-between ${
+                      record
+                        ? 'bg-white border border-stone-200/90 shadow-soft hover:shadow-card'
+                        : 'bg-white/60 border-2 border-dashed border-stone-300/80 hover:border-teal-500/60 hover:bg-white'
+                    }`}
                   >
                     {/* Top Row: Slot Icon, Title & Status Badge */}
                     <div className="flex items-start justify-between gap-3">
