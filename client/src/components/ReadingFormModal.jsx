@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import SlotIcon from './SlotIcon';
 import {
@@ -105,9 +106,9 @@ export default function ReadingFormModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/45 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="reading-modal-title"
@@ -296,6 +297,7 @@ export default function ReadingFormModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { HeartPulse } from 'lucide-react';
 import {
   IoGridOutline,
   IoTimeOutline,
@@ -9,6 +8,7 @@ import {
 } from 'react-icons/io5';
 import GradientMenu from '@/components/ui/gradient-menu';
 import ThemeToggleButton from './ThemeToggleButton';
+import SweetyIcon from './SweetyIcon';
 import { useAuth } from '../context/AuthContext';
 import { useAppTransition } from '../App';
 
@@ -85,9 +85,7 @@ export default function Navbar() {
             to="/dashboard"
             className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full hover:bg-stone-100/80 dark:hover:bg-stone-800/80 transition-colors group shrink-0"
           >
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-              <HeartPulse className="h-4 w-4" />
-            </div>
+            <SweetyIcon className="h-9 w-9 shrink-0 shadow-xs rounded-xl group-hover:scale-105 transition-transform" />
             <span className="font-display text-lg font-extrabold tracking-tight text-stone-900 dark:text-stone-100">
               Sweety
             </span>

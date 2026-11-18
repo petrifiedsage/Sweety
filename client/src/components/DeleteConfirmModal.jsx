@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, X } from 'lucide-react';
 import { formatDisplayDate } from '../utils/constants';
 
@@ -17,9 +18,9 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, reading
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/45 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
     >
@@ -77,6 +78,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, onConfirm, reading
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
