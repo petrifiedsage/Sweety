@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240" role="img" aria-labelledby="title desc">
+  <title id="title">Sweety logo concept 2</title>
+  <desc id="desc">A rounded teal glucose meter icon with a rising three-dot reading motif and a coral smile-shaped curve, beside the Sweety wordmark.</desc>
+  <defs>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#27B7AE"/>
+      <stop offset="1" stop-color="#168D91"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App mark: a friendly glucose meter, not a medical cross or heart -->
+  <g transform="translate(24 24)">
+    <rect x="8" y="8" width="176" height="176" rx="48" fill="url(#teal)"/>
+    <rect x="35" y="34" width="122" height="94" rx="20" fill="#F7FFFE"/>
+    <path d="M51 96 L73 96 L86 76 L103 108 L119 86 L141 86"
+          fill="none" stroke="#183B4E" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="58" cy="150" r="7" fill="#FF8A80"/>
+    <circle cx="96" cy="150" r="7" fill="#FF8A80"/>
+    <circle cx="134" cy="150" r="7" fill="#FF8A80"/>
+    <path d="M70 169 Q96 181 122 169" fill="none" stroke="#D9F5F1" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="232" y="125" font-family="Inter, ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="82" font-weight="750" letter-spacing="-4" fill="#183B4E">sweety</text>
+  <text x="238" y="165" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="17" font-weight="650" letter-spacing="4.2" fill="#64808C">BLOOD GLUCOSE TRACKER</text>
+</svg>

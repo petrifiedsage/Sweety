@@ -1,12 +1,28 @@
+<p align="center">
+  <img src="docs/assets/sweety-logo.svg" alt="Sweety — Blood Glucose Tracker" width="420" />
+</p>
+
 # Sweety — Blood Glucose Tracker
 
 Sweety is a full-stack web application for recording and tracking daily blood glucose levels across four meal-related time slots (`Morning (fasting)`, `After breakfast`, `After lunch`, and `After dinner`).
 
 ---
 
+## Screenshots
+
+| Sign In / Registration | Daily Dashboard |
+|---|---|
+| ![Sweety Screenshot 1](docs/screenshots/sweety-1.png) | ![Sweety Screenshot 2](docs/screenshots/sweety-2.png) |
+
+| Reading History | Glucose Reports & Trends |
+|---|---|
+| ![Sweety Screenshot 3](docs/screenshots/sweety-3.png) | ![Sweety Screenshot 4](docs/screenshots/sweety-4.png) |
+
+---
+
 ## Tech Stack
 
-- **Frontend:** React, Vite, Tailwind CSS, React Router, Axios, Recharts
+- **Frontend:** React, Vite, Tailwind CSS, React Router, Axios, Recharts, React Toastify
 - **Backend:** Node.js, Express, Prisma ORM, JWT, bcryptjs, Redis (`ioredis`), BullMQ
 - **Database & Cache:** PostgreSQL, Redis 7
 - **Testing:** Jest & Supertest (Backend), Vitest & React Testing Library (Frontend)
@@ -15,7 +31,7 @@ Sweety is a full-stack web application for recording and tracking daily blood gl
 
 ## Quick Start (Docker Compose)
 
-Run the entire app with a single command:
+Run the entire stack (PostgreSQL, Redis, Backend API, Demo Seed, and Frontend) with a single command:
 
 ```bash
 docker compose up --build
@@ -24,10 +40,6 @@ docker compose up --build
 - **Frontend:** `http://localhost:5173`
 - **Backend API:** `http://localhost:5000/api`
 
-To stop the app:
-```bash
-docker compose down
-```
 ---
 
 ## Manual Local Setup
@@ -52,6 +64,8 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sweety?schema=public
 JWT_SECRET="replace-with-a-secure-jwt-secret-key"
 JWT_EXPIRES_IN=1d
 CLIENT_URL=http://localhost:5173
+REDIS_URL=redis://localhost:6379
+REPORT_CACHE_TTL=300
 ```
 
 ### 3. Setup Database & Seed Demo Data
@@ -107,4 +121,4 @@ npm test --prefix client
   5. Future dates are rejected (`"Date cannot be in the future."`).
   6. Strict user ownership isolation.
 - **Reports & Caching:** Daily, This Month (Month-to-Date), and Last Month (Previous Month) statistics (highest, lowest, average rounded to 1 decimal place, total count, healthy range breakdown, and glucose trend chart) backed by **Redis report caching** with automatic per-user invalidation on reading changes.
-- **Background Jobs (BullMQ):** Automated daily unlogged-slot reminder evaluation (`/api/jobs/reminders`) and asynchronous report cache pre-warming.
+- **Background Jobs (BullMQ):** Automated daily unlogged-slot reminder evaluation (`/api/jobs/reminders`) with `react-toastify` dashboard popups and asynchronous report cache pre-warming.
