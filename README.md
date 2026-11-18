@@ -2,8 +2,6 @@
   <img src="docs/assets/sweety-logo.svg" alt="Sweety — Blood Glucose Tracker" width="420" />
 </p>
 
-# Sweety — Blood Glucose Tracker
-
 Sweety is a full-stack web application for recording and tracking daily blood glucose levels across four meal-related time slots (`Morning (fasting)`, `After breakfast`, `After lunch`, and `After dinner`).
 
 ---
@@ -12,11 +10,11 @@ Sweety is a full-stack web application for recording and tracking daily blood gl
 
 | Sign In / Registration | Daily Dashboard |
 |---|---|
-| ![Sweety Screenshot 1](docs/screenshots/sweety-1.png) | ![Sweety Screenshot 2](docs/screenshots/sweety-2.png) |
+| ![Sweety Screenshot 1](docs/screenshots/sweety-1.png) | ![Sweety Screenshot 2](docs/screenshots/sweety-3.png) |
 
 | Reading History | Glucose Reports & Trends |
 |---|---|
-| ![Sweety Screenshot 3](docs/screenshots/sweety-3.png) | ![Sweety Screenshot 4](docs/screenshots/sweety-4.png) |
+| ![Sweety Screenshot 3](docs/screenshots/sweety-5.png) | ![Sweety Screenshot 4](docs/screenshots/sweety-6.png) |
 
 ---
 
@@ -122,3 +120,11 @@ npm test --prefix client
   6. Strict user ownership isolation.
 - **Reports & Caching:** Daily, This Month (Month-to-Date), and Last Month (Previous Month) statistics (highest, lowest, average rounded to 1 decimal place, total count, healthy range breakdown, and glucose trend chart) backed by **Redis report caching** with automatic per-user invalidation on reading changes.
 - **Background Jobs (BullMQ):** Automated daily unlogged-slot reminder evaluation (`/api/jobs/reminders`) with `react-toastify` dashboard popups and asynchronous report cache pre-warming.
+
+---
+
+## Future Improvements
+
+- Exportable PDF and CSV reports.
+- Doctor and patient account management.
+- Mobile view support.
